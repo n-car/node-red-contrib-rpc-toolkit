@@ -33,9 +33,11 @@ module.exports = function(RED) {
             return new Promise((resolve, reject) => {
                 const requestId = 'rpc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                 
-                // Send to flow
+                node.warn('RPC Method handler called - Method: ' + methodName + ', Params: ' + JSON.stringify(params));
+                
+                // Send to flow - params should be the actual RPC parameters
                 const msg = {
-                    payload: params,
+                    payload: params,  // This should be {a: 1, b: 2} not the HTTP request
                     rpc: {
                         method: methodName,
                         id: requestId
