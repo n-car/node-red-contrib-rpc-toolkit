@@ -56,16 +56,17 @@ module.exports = function(RED) {
         serverNode.rpc.addMethod(methodName, async (req, context, params) => {
             return new Promise((resolve, reject) => {
                 const requestId = 'rpc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                
+
                 // Send to flow - output 1 (success path)
                 const msg = {
                     payload: params,
                     rpc: {
                         method: methodName,
-                        id: requestId
+                        id: requestId,
+                        methodNodeId: node.id
                     }
                 };
-                
+
                 // Store resolver
                 node.pendingRequests.set(requestId, { resolve, reject });
                 
@@ -89,21 +90,18 @@ module.exports = function(RED) {
         let statusText = methodName;
         if (exposeSchema) statusText += ' 📋';
         if (schema) statusText += ' ✓';
-        
+
         node.status({ fill: "green", shape: "dot", text: statusText });
-        
-        // Handle responses from flow (input)
-        node.on('input', function(msg) {
-            const requestId = msg.rpc?.id;
-            
+
+        node.respondToRequest = function(requestId, msg) {
             if (!requestId || !node.pendingRequests.has(requestId)) {
                 node.warn('No pending request found for ID: ' + requestId);
                 return;
             }
-            
+
             const { resolve, reject } = node.pendingRequests.get(requestId);
             node.pendingRequests.delete(requestId);
-            
+
             // Check if it's an error
             if (msg.error) {
                 reject(msg.error);
@@ -112,6 +110,12 @@ module.exports = function(RED) {
             } else {
                 resolve(msg.payload);
             }
+        };
+
+        // Handle responses from flow (input)
+        node.on('input', function(msg) {
+            const requestId = msg.rpc?.id;
+            node.respondToRequest(requestId, msg);
         });
         
         node.on('close', function() {

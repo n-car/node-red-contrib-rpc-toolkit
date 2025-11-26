@@ -188,6 +188,10 @@ Sends RPC response back to client.
 - `msg.rpc.id` - Request ID (from RPC Request)
 - `msg.error` - Error object (if error occurred)
 
+**Notes:**
+- The **RPC Method** node automatically attaches `msg.rpc.methodNodeId` and `msg.rpc.id` so the response can be routed back to the correct pending request.
+- Set `msg.error` to return an RPC error response; otherwise `msg.payload` is used as the successful result.
+
 ## 🎨 Example Flows
 
 ### Introspection API Discovery
