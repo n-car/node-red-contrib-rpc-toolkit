@@ -11,7 +11,8 @@
             authToken: { value: "" }
         },
         inputs: 1,
-        outputs: 1,
+        outputs: 2,
+        outputLabels: ["success", "error"],
         icon: "white-globe.svg",
         label: function() {
             return this.name || `rpc: ${this.method}`;
@@ -80,20 +81,32 @@
     </dl>
     
     <h3>Outputs</h3>
-    <dl class="message-properties">
-        <dt>payload <span class="property-type">any</span></dt>
-        <dd>The result from the RPC call</dd>
-        
-        <dt>rpc <span class="property-type">object</span></dt>
-        <dd>RPC metadata (method, success)</dd>
-        
-        <dt class="optional">error <span class="property-type">object</span></dt>
-        <dd>Error information if the call failed</dd>
-    </dl>
+    <ol class="node-ports">
+        <li>Success
+            <dl class="message-properties">
+                <dt>payload <span class="property-type">any</span></dt>
+                <dd>The result from the RPC call</dd>
+                
+                <dt>rpc <span class="property-type">object</span></dt>
+                <dd>RPC metadata (method, success: true)</dd>
+            </dl>
+        </li>
+        <li>Error
+            <dl class="message-properties">
+                <dt>payload <span class="property-type">null</span></dt>
+                <dd>Always null on error</dd>
+                
+                <dt>error <span class="property-type">object</span></dt>
+                <dd>Error information (message, code)</dd>
+            </dl>
+        </li>
+    </ol>
     
     <h3>Details</h3>
-    <p>This node makes JSON-RPC 2.0 calls to remote servers. 
-    Compatible with Express, PHP, .NET, and Arduino RPC servers.</p>
+    <p>This node makes JSON-RPC 2.0 calls to remote servers.</p>
+    <p>On success, the result is sent to <strong>output 1</strong>.</p>
+    <p>On error, the error details are sent to <strong>output 2</strong>.</p>
+    <p>Compatible with Express, PHP, .NET, and Arduino RPC servers.</p>
     
     <h3>Examples</h3>
     <p>Call an Arduino temperature sensor:</p>

@@ -1,6 +1,8 @@
 /**
  * RPC Client Node for Node-RED
  * Calls remote JSON-RPC 2.0 servers
+ * Output 1: Successful responses
+ * Output 2: Errors
  */
 
 const { RpcClient } = require('rpc-express-toolkit');
@@ -41,6 +43,7 @@ module.exports = function(RED) {
                 
                 const result = await node.client.call(methodName, params);
                 
+                // Success - send to output 1
                 msg.payload = result;
                 msg.rpc = {
                     method: methodName,
@@ -48,7 +51,7 @@ module.exports = function(RED) {
                 };
                 
                 node.status({ fill: "green", shape: "dot", text: "success" });
-                node.send(msg);
+                node.send([msg, null]); // Output 1 only
                 
                 // Clear status after 2 seconds
                 setTimeout(() => {
@@ -57,15 +60,23 @@ module.exports = function(RED) {
                 
             } catch (error) {
                 node.status({ fill: "red", shape: "ring", text: "error" });
-                node.error(`RPC call failed: ${error.message}`, msg);
                 
-                msg.payload = null;
-                msg.error = {
-                    message: error.message,
-                    code: error.code || -32603
+                // Error - send to output 2
+                const errorMsg = {
+                    ...msg,
+                    payload: null,
+                    error: {
+                        message: error.message,
+                        code: error.code || -32603
+                    }
                 };
                 
-                node.send(msg);
+                node.send([null, errorMsg]); // Output 2 only
+                
+                // Clear status after 2 seconds
+                setTimeout(() => {
+                    node.status({ fill: "grey", shape: "ring", text: "ready" });
+                }, 2000);
             }
         });
         
