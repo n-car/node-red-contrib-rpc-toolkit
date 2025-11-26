@@ -1,0 +1,49 @@
+<script type="text/javascript">
+    RED.nodes.registerType('rpc-response', {
+        category: 'network',
+        color: '#3FADB5',
+        defaults: {
+            name: { value: "" }
+        },
+        inputs: 1,
+        outputs: 0,
+        icon: "arrow-right.svg",
+        label: function() {
+            return this.name || "rpc response";
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="rpc-response">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+
+<script type="text/html" data-help-name="rpc-response">
+    <p>Sends a JSON-RPC response back to the caller for a pending request.</p>
+
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">any</span></dt>
+        <dd>The result to return to the RPC caller.</dd>
+
+        <dt>rpc.id <span class="property-type">any</span></dt>
+        <dd>The request identifier provided by the RPC Method node.</dd>
+
+        <dt>rpc.methodNodeId <span class="property-type">string</span></dt>
+        <dd>Reference to the originating RPC Method node. Automatically added by the RPC Method node.</dd>
+
+        <dt class="optional">error <span class="property-type">object</span></dt>
+        <dd>If provided, the RPC call is rejected and this value is sent as the error response.</dd>
+    </dl>
+
+    <h3>Details</h3>
+    <p>
+        Place this node after your processing logic to complete an RPC request that began in an
+        <strong>RPC Method</strong> node. The RPC Method node attaches <code>rpc.id</code> and
+        <code>rpc.methodNodeId</code> to the message so the response node can route the result back
+        to the correct pending request.
+    </p>
+</script>
