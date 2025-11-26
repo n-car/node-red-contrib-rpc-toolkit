@@ -6,6 +6,8 @@
             name: { value: "" },
             server: { value: "", type: "rpc-server", required: true },
             methodName: { value: "", required: true },
+            description: { value: "" },
+            exposeSchema: { value: false },
             schema: { value: "" },
             validateSchema: { value: false }
         },
@@ -278,6 +280,17 @@
     </div>
     
     <div class="form-row">
+        <label for="node-input-description"><i class="fa fa-info-circle"></i> Description</label>
+        <input type="text" id="node-input-description" placeholder="Describe what this method does">
+    </div>
+    
+    <div class="form-row">
+        <label>&nbsp;</label>
+        <input type="checkbox" id="node-input-exposeSchema" style="display:inline-block; width:auto; vertical-align:top;">
+        <label for="node-input-exposeSchema" style="width:70%">Expose Schema (allow introspection via __rpc.describe)</label>
+    </div>
+    
+    <div class="form-row">
         <label>&nbsp;</label>
         <input type="checkbox" id="node-input-validateSchema" style="display:inline-block; width:auto; vertical-align:top;">
         <label for="node-input-validateSchema" style="width:70%">Validate Schema</label>
@@ -302,6 +315,12 @@
         
         <dt>Method Name <span class="property-type">string</span></dt>
         <dd>The name of the method to register</dd>
+        
+        <dt class="optional">Description <span class="property-type">string</span></dt>
+        <dd>Description of what this method does. Visible via introspection if schema is exposed.</dd>
+        
+        <dt class="optional">Expose Schema <span class="property-type">boolean</span></dt>
+        <dd>Allow clients to discover this method via <code>__rpc.describe</code> and <code>__rpc.describeAll</code></dd>
         
         <dt>Validate Schema <span class="property-type">boolean</span></dt>
         <dd>Enable parameter validation with JSON Schema</dd>

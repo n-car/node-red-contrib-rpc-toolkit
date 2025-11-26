@@ -19,9 +19,11 @@ JSON-RPC 2.0 client and server nodes for Node-RED. Build powerful automation flo
 
 ### Advanced Features
 - ✅ **JSON-RPC 2.0 Compliance** - Full specification support
+- ✅ **Introspection API** - Discover methods with `__rpc.*` (listMethods, describe, version, capabilities)
 - ✅ **Cross-Platform** - Works with entire RPC Toolkit ecosystem
 - ✅ **Safe Mode** - Type-safe serialization with prefixes
 - ✅ **Batch Requests** - Process multiple requests efficiently
+- ✅ **Schema Support** - JSON Schema validation and exposition
 - ✅ **Error Handling** - Structured error responses
 - ✅ **Authentication** - JWT and custom auth support
 - ✅ **CORS** - Cross-origin resource sharing
@@ -78,7 +80,7 @@ curl -X POST http://localhost:1880/rpc \
 {"jsonrpc":"2.0","result":"pong","id":1}
 ```
 
-### Example 2: Call Arduino/ESP32
+### Call Arduino/ESP32
 
 ```
 [Inject] → [RPC Client] → [Debug]
@@ -90,6 +92,19 @@ curl -X POST http://localhost:1880/rpc \
 - Timeout: `5000` ms
 
 **Output:** `msg.payload = 25.5`
+
+**Discover Arduino methods:**
+
+```javascript
+// Use RPC Client node to call introspection
+// Method: __rpc.listMethods
+// Output: ["readTemp", "setLED", "readSensors", ...]
+
+// Get method details
+// Method: __rpc.describe
+// Params: {"method": "readTemp"}
+// Output: {"name":"readTemp","description":"Read temperature sensor","exposeSchema":true}
+```
 
 ### Example 3: IoT Sensor Hub
 
@@ -140,10 +155,19 @@ Registers a method handler in the RPC server.
 **Properties:**
 - **Server** - Link to RPC Server node
 - **Method Name** - Name of the method (e.g., `getStatus`)
+- **Description** - Human-readable description of the method (optional)
+- **Expose Schema** - Allow introspection via `__rpc.describe` (checkbox)
+- **Validate Schema** - Enable JSON Schema validation (checkbox)
 - **Schema** - Optional JSON Schema for validation
 
 **Input:** `msg.payload` = method parameters
 **Output:** Pass result to RPC Response node
+
+**Introspection Support:**
+When "Expose Schema" is enabled, clients can discover this method via:
+- `__rpc.listMethods` - Lists all method names
+- `__rpc.describe` - Gets method description and schema info
+- `__rpc.describeAll` - Gets all methods with public schemas
 
 ### RPC Request Node
 
@@ -165,6 +189,64 @@ Sends RPC response back to client.
 - `msg.error` - Error object (if error occurred)
 
 ## 🎨 Example Flows
+
+### Introspection API Discovery
+
+Discover available methods from any RPC client:
+
+```bash
+# List all available methods
+curl -X POST http://localhost:1880/rpc \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"__rpc.listMethods","id":1}'
+
+# Response: {"jsonrpc":"2.0","result":["ping","add","getUser"],"id":1}
+
+# Get method description
+curl -X POST http://localhost:1880/rpc \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"__rpc.describe","params":{"method":"add"},"id":2}'
+
+# Response: {"jsonrpc":"2.0","result":{"name":"add","description":"Add two numbers","exposeSchema":true,"schema":{...}},"id":2}
+
+# Get all public methods with schemas
+curl -X POST http://localhost:1880/rpc \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"__rpc.describeAll","id":3}'
+
+# Get server version and capabilities
+curl -X POST http://localhost:1880/rpc \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"__rpc.version","id":4}'
+
+# Response: {"jsonrpc":"2.0","result":{"toolkit":"rpc-express-toolkit","version":"4.2.0","nodeVersion":"v18.0.0"},"id":4}
+
+curl -X POST http://localhost:1880/rpc \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"__rpc.capabilities","id":5}'
+
+# Response: {"jsonrpc":"2.0","result":{"batch":true,"introspection":true,"validation":true,"safeMode":false,"methodCount":5},"id":5}
+```
+
+**Built-in introspection methods:**
+- `__rpc.listMethods` - Returns array of all method names (excludes `__rpc.*` methods)
+- `__rpc.describe` - Returns `{name, description, exposeSchema, schema}` for a specific method
+- `__rpc.describeAll` - Returns array of all methods with `exposeSchema: true`
+- `__rpc.version` - Returns toolkit version and Node.js version info
+- `__rpc.capabilities` - Returns server features (batch, introspection, validation, etc.)
+
+**Register methods with schema exposition:**
+
+```
+[RPC Method]
+  Method Name: "add"
+  Description: "Add two numbers"
+  ☑ Expose Schema
+  ☑ Validate Schema
+  Properties:
+    - a: number (required)
+    - b: number (required)
+```
 
 ### Home Automation Hub
 
@@ -297,6 +379,8 @@ return msg;
 
 ## 🌐 Cross-Platform Integration
 
+All introspection methods work seamlessly across platforms!
+
 ### Call PHP Server
 
 ```javascript
@@ -308,6 +392,11 @@ return msg;
     "name": "John",
     "email": "john@example.com"
   }
+}
+
+// Discover PHP methods
+{
+  "method": "__rpc.listMethods"  // Works on PHP server too!
 }
 ```
 
@@ -322,6 +411,12 @@ return msg;
     "orderId": 12345
   }
 }
+
+// Get .NET method schema
+{
+  "method": "__rpc.describe",
+  "params": {"method": "order.process"}
+}
 ```
 
 ### Call Arduino/ESP32
@@ -333,6 +428,12 @@ return msg;
   "method": "readSensors",
   "params": {}
 }
+
+// Check ESP32 capabilities
+{
+  "method": "__rpc.capabilities"
+}
+// Result: {"batch":true,"introspection":true,"safeMode":false,"methodCount":5,"maxMethods":8}
 ```
 
 ### Dashboard Integration

@@ -13,6 +13,8 @@ module.exports = function(RED) {
         
         // Configuration
         const methodName = config.methodName;
+        const description = config.description || '';
+        const exposeSchema = config.exposeSchema || false;
         const serverNode = RED.nodes.getNode(config.server);
         const validateSchema = config.validateSchema;
         let schema = null;
@@ -40,8 +42,11 @@ module.exports = function(RED) {
         // Store pending requests
         node.pendingRequests = new Map();
         
-        // Prepare method options
-        const methodOptions = {};
+        // Prepare method options with description and exposeSchema
+        const methodOptions = {
+            description: description,
+            exposeSchema: exposeSchema
+        };
         if (schema) {
             methodOptions.schema = schema;
         }
@@ -81,7 +86,10 @@ module.exports = function(RED) {
             serverNode.registerMethod(methodName);
         }
         
-        const statusText = schema ? `${methodName} ✓` : `registered: ${methodName}`;
+        let statusText = methodName;
+        if (exposeSchema) statusText += ' 📋';
+        if (schema) statusText += ' ✓';
+        
         node.status({ fill: "green", shape: "dot", text: statusText });
         
         // Handle responses from flow (input)
