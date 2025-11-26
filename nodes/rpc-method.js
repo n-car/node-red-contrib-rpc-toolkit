@@ -29,15 +29,14 @@ module.exports = function(RED) {
         }
         
         // Register method in RPC server
-        serverNode.rpc.addMethod(methodName, async (params) => {
+        // Handler signature: (req, context, params)
+        serverNode.rpc.addMethod(methodName, async (req, context, params) => {
             return new Promise((resolve, reject) => {
                 const requestId = 'rpc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                 
-                node.warn('RPC Method handler called - Method: ' + methodName + ', Params: ' + JSON.stringify(params));
-                
-                // Send to flow - params should be the actual RPC parameters
+                // Send to flow - params are the actual RPC parameters
                 const msg = {
-                    payload: params,  // This should be {a: 1, b: 2} not the HTTP request
+                    payload: params,  // This should now be {a: 1, b: 2}
                     rpc: {
                         method: methodName,
                         id: requestId
