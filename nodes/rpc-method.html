@@ -20,6 +20,83 @@
             return this.name ? "node_label_italic" : "";
         },
         oneditprepare: function() {
+            const node = this;
+            
+            // Parse existing schema or create empty
+            let schemaData = { properties: [] };
+            if (node.schema) {
+                try {
+                    const parsed = JSON.parse(node.schema);
+                    schemaData.properties = [];
+                    if (parsed.properties) {
+                        for (const [key, value] of Object.entries(parsed.properties)) {
+                            schemaData.properties.push({
+                                name: key,
+                                type: value.type || 'string',
+                                required: parsed.required?.includes(key) || false
+                            });
+                        }
+                    }
+                } catch (e) {
+                    // Invalid JSON, start fresh
+                }
+            }
+            
+            // Build schema editor UI
+            function rebuildSchemaEditor() {
+                const container = $('#schema-properties');
+                container.empty();
+                
+                schemaData.properties.forEach((prop, index) => {
+                    const row = $('<div class="schema-property-row" style="margin-bottom:8px; display:flex; align-items:center; gap:8px;"></div>');
+                    
+                    // Name input
+                    const nameInput = $('<input type="text" placeholder="name" style="width:120px; font-family:monospace;">')
+                        .val(prop.name)
+                        .on('change', function() {
+                            schemaData.properties[index].name = $(this).val();
+                        });
+                    
+                    // Type select
+                    const typeSelect = $('<select style="width:100px;"></select>')
+                        .html('<option value="string">string</option><option value="number">number</option><option value="integer">integer</option><option value="boolean">boolean</option><option value="object">object</option><option value="array">array</option>')
+                        .val(prop.type)
+                        .on('change', function() {
+                            schemaData.properties[index].type = $(this).val();
+                        });
+                    
+                    // Required checkbox
+                    const requiredCheck = $('<input type="checkbox" style="margin:0 4px;">')
+                        .prop('checked', prop.required)
+                        .on('change', function() {
+                            schemaData.properties[index].required = $(this).is(':checked');
+                        });
+                    const requiredLabel = $('<label style="margin:0;">required</label>');
+                    
+                    // Remove button
+                    const removeBtn = $('<button type="button" style="padding:2px 8px;">✕</button>')
+                        .on('click', function() {
+                            schemaData.properties.splice(index, 1);
+                            rebuildSchemaEditor();
+                        });
+                    
+                    row.append(nameInput, typeSelect, requiredCheck, requiredLabel, removeBtn);
+                    container.append(row);
+                });
+                
+                // Add button
+                const addRow = $('<div style="margin-top:8px;"></div>');
+                const addBtn = $('<button type="button" style="padding:4px 12px;">+ Add Property</button>')
+                    .on('click', function() {
+                        schemaData.properties.push({ name: '', type: 'string', required: false });
+                        rebuildSchemaEditor();
+                    });
+                addRow.append(addBtn);
+                container.append(addRow);
+            }
+            
+            rebuildSchemaEditor();
+            
             const toggleSchema = function() {
                 if ($('#node-input-validateSchema').is(':checked')) {
                     $('#schema-row').show();
@@ -30,6 +107,41 @@
             
             $('#node-input-validateSchema').on('change', toggleSchema);
             toggleSchema();
+            
+            // Store schema data for save
+            node._schemaData = schemaData;
+        },
+        oneditsave: function() {
+            // Build JSON schema from visual editor
+            if (this._schemaData && this._schemaData.properties.length > 0) {
+                const schema = {
+                    type: "object",
+                    properties: {},
+                    required: []
+                };
+                
+                this._schemaData.properties.forEach(prop => {
+                    if (prop.name) {
+                        schema.properties[prop.name] = { type: prop.type };
+                        if (prop.required) {
+                            schema.required.push(prop.name);
+                        }
+                    }
+                });
+                
+                if (schema.required.length === 0) {
+                    delete schema.required;
+                }
+                
+                this.schema = JSON.stringify(schema);
+            } else {
+                this.schema = '';
+            }
+            
+            delete this._schemaData;
+        },
+        oneditcancel: function() {
+            delete this._schemaData;
         }
     });
 </script>
@@ -57,16 +169,11 @@
     </div>
     
     <div class="form-row" id="schema-row" style="display:none;">
-        <label for="node-input-schema" style="vertical-align:top;"><i class="fa fa-list-alt"></i> Schema</label>
-        <textarea id="node-input-schema" rows="8" style="width:70%; font-family:monospace; font-size:12px;" placeholder='{
-  "type": "object",
-  "properties": {
-    "a": { "type": "number" },
-    "b": { "type": "number" }
-  },
-  "required": ["a", "b"]
-}'></textarea>
-        <div class="form-tips" style="margin-left:100px;">JSON Schema (Draft 7) for parameter validation</div>
+        <label for="node-input-schema" style="vertical-align:top;"><i class="fa fa-list-alt"></i> Properties</label>
+        <div id="schema-properties" style="display:inline-block; width:70%; vertical-align:top;">
+            <!-- Dynamic property editor will be inserted here -->
+        </div>
+        <div class="form-tips" style="margin-left:100px; margin-top:8px;">Define the expected parameters for this method</div>
     </div>
 </script>
 
