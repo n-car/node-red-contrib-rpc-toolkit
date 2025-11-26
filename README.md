@@ -485,6 +485,14 @@ npm link node-red-contrib-rpc-toolkit
 npm test
 ```
 
+## 🔗 Related Projects
+
+- [rpc-express-toolkit](https://github.com/n-car/rpc-express-toolkit) - Node.js/Express implementation
+- [rpc-php-toolkit](https://github.com/n-car/rpc-php-toolkit) - PHP implementation
+- [rpc-dotnet-toolkit](https://github.com/n-car/rpc-dotnet-toolkit) - .NET implementation
+- [rpc-arduino-toolkit](https://github.com/n-car/rpc-arduino-toolkit) - Arduino/ESP32 implementation
+- [rpc-java-toolkit](https://github.com/n-car/rpc-java-toolkit) - Java & Android implementation
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details.
