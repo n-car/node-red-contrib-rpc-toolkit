@@ -30,13 +30,12 @@ module.exports = function(RED) {
             return new Promise((resolve, reject) => {
                 const requestId = Date.now() + Math.random();
                 
-                // Send to flow
+                // Send to flow (without context to avoid circular refs)
                 const msg = {
                     payload: params,
                     rpc: {
                         method: methodName,
-                        id: requestId,
-                        context: context
+                        id: requestId
                     }
                 };
                 
