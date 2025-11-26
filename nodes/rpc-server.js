@@ -3,6 +3,7 @@
  * Creates a global HTTP endpoint for JSON-RPC 2.0 requests
  */
 
+const express = require('express');
 const { RpcEndpoint } = require('rpc-express-toolkit');
 
 module.exports = function(RED) {
@@ -15,24 +16,19 @@ module.exports = function(RED) {
         const safeEnabled = config.safeEnabled || false;
         const corsEnabled = config.corsEnabled || false;
         
-        // Create RPC endpoint
-        const rpcOptions = {
-            safeEnabled: safeEnabled,
-            enableBatch: true,
-            enableLogging: true
-        };
-        
-        node.rpc = new RpcEndpoint(endpoint, {}, rpcOptions);
-        
         // Verify HTTP server is available
         if (!RED.httpNode) {
             node.error("HTTP server not available");
             return;
         }
         
+        // Create a mini Express app for RPC
+        const app = express();
+        app.use(express.json());
+        
         // Add CORS middleware if enabled
         if (corsEnabled) {
-            RED.httpNode.use(endpoint, (req, res, next) => {
+            app.use((req, res, next) => {
                 res.header('Access-Control-Allow-Origin', '*');
                 res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
                 res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-RPC-Safe');
@@ -44,27 +40,18 @@ module.exports = function(RED) {
             });
         }
         
-        // Store the route handler so we can remove it later
-        node.routeHandler = async (req, res) => {
-            try {
-                const body = JSON.stringify(req.body);
-                const response = await node.rpc.handleRequest(body);
-                res.json(JSON.parse(response));
-            } catch (error) {
-                node.error('RPC handling error: ' + error.message);
-                res.status(500).json({
-                    jsonrpc: '2.0',
-                    error: {
-                        code: -32603,
-                        message: 'Internal error'
-                    },
-                    id: null
-                });
-            }
+        // Create RPC endpoint with the mini app
+        const rpcOptions = {
+            safeEnabled: safeEnabled,
+            enableBatch: true,
+            enableLogging: true,
+            endpoint: '/'  // Use root path since we mount the app at the endpoint
         };
         
-        // Register HTTP endpoint
-        RED.httpNode.post(endpoint, node.routeHandler);
+        node.rpc = new RpcEndpoint(app, {}, rpcOptions);
+        
+        // Mount the RPC app at the configured endpoint
+        RED.httpNode.use(endpoint, app);
         
         node.log(`RPC Server listening on ${endpoint}`);
         
@@ -72,7 +59,7 @@ module.exports = function(RED) {
             // Remove HTTP route
             if (RED.httpNode._router && RED.httpNode._router.stack) {
                 RED.httpNode._router.stack = RED.httpNode._router.stack.filter(
-                    layer => layer.route?.path !== endpoint
+                    layer => layer.handle !== app
                 );
             }
             done();
