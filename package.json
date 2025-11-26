@@ -22,8 +22,7 @@
       "rpc-server": "nodes/rpc-server.js",
       "rpc-client": "nodes/rpc-client.js",
       "rpc-method": "nodes/rpc-method.js",
-      "rpc-request": "nodes/rpc-request.js",
-      "rpc-response": "nodes/rpc-response.js"
+      "rpc-request": "nodes/rpc-request.js"
     }
   },
   "author": {
