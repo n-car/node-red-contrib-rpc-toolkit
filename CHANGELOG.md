@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Server status info panel in config node editor
 - Real-time display of registered methods and endpoint
-- HTTP admin endpoint for config UI data
+- HTTP admin endpoint for config UI data 
 
 ### Changed
 - **BREAKING**: RPC Method node no longer accepts direct replies; use the RPC Response node to finish calls
