@@ -27,64 +27,157 @@
             if (node.schema) {
                 try {
                     const parsed = JSON.parse(node.schema);
-                    schemaData.properties = [];
-                    if (parsed.properties) {
-                        for (const [key, value] of Object.entries(parsed.properties)) {
-                            schemaData.properties.push({
-                                name: key,
-                                type: value.type || 'string',
-                                required: parsed.required?.includes(key) || false
-                            });
-                        }
-                    }
+                    schemaData.properties = parseSchemaToEditor(parsed);
                 } catch (e) {
                     // Invalid JSON, start fresh
                 }
             }
             
-            // Build schema editor UI
-            function rebuildSchemaEditor() {
-                const container = $('#schema-properties');
+            // Convert JSON Schema to editor format (recursive)
+            function parseSchemaToEditor(schema) {
+                const properties = [];
+                if (schema.properties) {
+                    for (const [key, value] of Object.entries(schema.properties)) {
+                        const prop = {
+                            name: key,
+                            type: value.type || 'string',
+                            required: schema.required?.includes(key) || false
+                        };
+                        
+                        // Handle nested object
+                        if (value.type === 'object' && value.properties) {
+                            prop.properties = parseSchemaToEditor(value);
+                        }
+                        
+                        // Handle array of objects
+                        if (value.type === 'array' && value.items) {
+                            if (value.items.type === 'object' && value.items.properties) {
+                                prop.itemType = 'object';
+                                prop.itemProperties = parseSchemaToEditor(value.items);
+                            } else {
+                                prop.itemType = value.items.type || 'string';
+                            }
+                        }
+                        
+                        properties.push(prop);
+                    }
+                }
+                return properties;
+            }
+            
+            // Build schema editor UI (recursive)
+            function buildPropertyEditor(properties, container, level = 0) {
                 container.empty();
                 
-                schemaData.properties.forEach((prop, index) => {
-                    const row = $('<div class="schema-property-row" style="margin-bottom:8px; display:flex; align-items:center; gap:8px;"></div>');
+                properties.forEach((prop, index) => {
+                    const row = $('<div class="schema-property-row" style="margin-bottom:8px; margin-left:' + (level * 20) + 'px;"></div>');
+                    const controls = $('<div style="display:flex; align-items:center; gap:8px;"></div>');
                     
                     // Name input
                     const nameInput = $('<input type="text" placeholder="name" style="width:120px; font-family:monospace;">')
                         .val(prop.name)
                         .on('change', function() {
-                            schemaData.properties[index].name = $(this).val();
+                            properties[index].name = $(this).val();
                         });
                     
                     // Type select
-                    const typeSelect = $('<select style="width:100px;"></select>')
-                        .html('<option value="string">string</option><option value="number">number</option><option value="integer">integer</option><option value="boolean">boolean</option><option value="object">object</option><option value="array">array</option>')
-                        .val(prop.type)
+                    const typeSelect = $('<select style="width:110px;"></select>')
+                        .html('<option value="string">string</option><option value="number">number</option><option value="integer">integer</option><option value="boolean">boolean</option><option value="object">object</option><option value="array">array</option><option value="array-object">array[object]</option>')
+                        .val(prop.type === 'array' && prop.itemType === 'object' ? 'array-object' : prop.type)
                         .on('change', function() {
-                            schemaData.properties[index].type = $(this).val();
+                            const newType = $(this).val();
+                            if (newType === 'array-object') {
+                                properties[index].type = 'array';
+                                properties[index].itemType = 'object';
+                                properties[index].itemProperties = properties[index].itemProperties || [];
+                            } else if (newType === 'array') {
+                                properties[index].type = 'array';
+                                properties[index].itemType = 'string';
+                                delete properties[index].itemProperties;
+                            } else if (newType === 'object') {
+                                properties[index].type = 'object';
+                                properties[index].properties = properties[index].properties || [];
+                                delete properties[index].itemType;
+                                delete properties[index].itemProperties;
+                            } else {
+                                properties[index].type = newType;
+                                delete properties[index].properties;
+                                delete properties[index].itemType;
+                                delete properties[index].itemProperties;
+                            }
+                            rebuildSchemaEditor();
                         });
                     
                     // Required checkbox
                     const requiredCheck = $('<input type="checkbox" style="margin:0 4px;">')
                         .prop('checked', prop.required)
                         .on('change', function() {
-                            schemaData.properties[index].required = $(this).is(':checked');
+                            properties[index].required = $(this).is(':checked');
                         });
                     const requiredLabel = $('<label style="margin:0;">required</label>');
                     
                     // Remove button
                     const removeBtn = $('<button type="button" style="padding:2px 8px;">✕</button>')
                         .on('click', function() {
-                            schemaData.properties.splice(index, 1);
+                            properties.splice(index, 1);
                             rebuildSchemaEditor();
                         });
                     
-                    row.append(nameInput, typeSelect, requiredCheck, requiredLabel, removeBtn);
+                    controls.append(nameInput, typeSelect, requiredCheck, requiredLabel, removeBtn);
+                    row.append(controls);
                     container.append(row);
+                    
+                    // Nested object properties
+                    if (prop.type === 'object' && prop.properties) {
+                        const nestedContainer = $('<div class="nested-properties" style="margin-left:20px; margin-top:4px; margin-bottom:8px; padding-left:8px; border-left:2px solid #ccc;"></div>');
+                        buildPropertyEditor(prop.properties, nestedContainer, level + 1);
+                        
+                        const addNestedBtn = $('<button type="button" style="padding:2px 8px; margin-left:' + ((level + 1) * 20) + 'px; font-size:11px;">+ nested property</button>')
+                            .on('click', function() {
+                                prop.properties.push({ name: '', type: 'string', required: false });
+                                rebuildSchemaEditor();
+                            });
+                        nestedContainer.append(addNestedBtn);
+                        container.append(nestedContainer);
+                    }
+                    
+                    // Array of objects
+                    if (prop.type === 'array' && prop.itemType === 'object' && prop.itemProperties) {
+                        const itemContainer = $('<div class="array-item-properties" style="margin-left:20px; margin-top:4px; margin-bottom:8px; padding-left:8px; border-left:2px solid #9cc;"></div>');
+                        const itemLabel = $('<div style="font-size:11px; color:#666; margin-bottom:4px; margin-left:' + ((level + 1) * 20) + 'px;">Item properties:</div>');
+                        itemContainer.append(itemLabel);
+                        buildPropertyEditor(prop.itemProperties, itemContainer, level + 1);
+                        
+                        const addItemPropBtn = $('<button type="button" style="padding:2px 8px; margin-left:' + ((level + 1) * 20) + 'px; font-size:11px;">+ item property</button>')
+                            .on('click', function() {
+                                prop.itemProperties.push({ name: '', type: 'string', required: false });
+                                rebuildSchemaEditor();
+                            });
+                        itemContainer.append(addItemPropBtn);
+                        container.append(itemContainer);
+                    }
+                    
+                    // Simple array (show item type selector)
+                    if (prop.type === 'array' && prop.itemType !== 'object') {
+                        const arrayTypeRow = $('<div style="margin-left:' + ((level + 1) * 20 + 20) + 'px; margin-top:4px; margin-bottom:8px; font-size:11px;"></div>');
+                        const arrayTypeLabel = $('<span style="color:#666; margin-right:8px;">Items:</span>');
+                        const arrayTypeSelect = $('<select style="width:90px; font-size:11px;"></select>')
+                            .html('<option value="string">string</option><option value="number">number</option><option value="integer">integer</option><option value="boolean">boolean</option>')
+                            .val(prop.itemType || 'string')
+                            .on('change', function() {
+                                properties[index].itemType = $(this).val();
+                            });
+                        arrayTypeRow.append(arrayTypeLabel, arrayTypeSelect);
+                        container.append(arrayTypeRow);
+                    }
                 });
+            }
+            
+            function rebuildSchemaEditor() {
+                const container = $('#schema-properties');
+                buildPropertyEditor(schemaData.properties, container, 0);
                 
-                // Add button
+                // Add root level button
                 const addRow = $('<div style="margin-top:8px;"></div>');
                 const addBtn = $('<button type="button" style="padding:4px 12px;">+ Add Property</button>')
                     .on('click', function() {
@@ -112,20 +205,37 @@
             node._schemaData = schemaData;
         },
         oneditsave: function() {
-            // Build JSON schema from visual editor
-            if (this._schemaData && this._schemaData.properties.length > 0) {
+            // Build JSON schema from visual editor (recursive)
+            function buildJsonSchema(properties) {
                 const schema = {
                     type: "object",
                     properties: {},
                     required: []
                 };
                 
-                this._schemaData.properties.forEach(prop => {
-                    if (prop.name) {
-                        schema.properties[prop.name] = { type: prop.type };
-                        if (prop.required) {
-                            schema.required.push(prop.name);
+                properties.forEach(prop => {
+                    if (!prop.name) return;
+                    
+                    if (prop.type === 'object' && prop.properties) {
+                        schema.properties[prop.name] = buildJsonSchema(prop.properties);
+                    } else if (prop.type === 'array') {
+                        if (prop.itemType === 'object' && prop.itemProperties) {
+                            schema.properties[prop.name] = {
+                                type: 'array',
+                                items: buildJsonSchema(prop.itemProperties)
+                            };
+                        } else {
+                            schema.properties[prop.name] = {
+                                type: 'array',
+                                items: { type: prop.itemType || 'string' }
+                            };
                         }
+                    } else {
+                        schema.properties[prop.name] = { type: prop.type };
+                    }
+                    
+                    if (prop.required) {
+                        schema.required.push(prop.name);
                     }
                 });
                 
@@ -133,6 +243,11 @@
                     delete schema.required;
                 }
                 
+                return schema;
+            }
+            
+            if (this._schemaData && this._schemaData.properties.length > 0) {
+                const schema = buildJsonSchema(this._schemaData.properties);
                 this.schema = JSON.stringify(schema);
             } else {
                 this.schema = '';
