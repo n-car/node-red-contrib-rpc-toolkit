@@ -20,30 +20,6 @@
             return this.name ? "node_label_italic" : "";
         },
         oneditprepare: function() {
-            const node = this;
-            
-            // Initialize schema editor with JSON type
-            $('#node-input-schema').typedInput({
-                type: 'json',
-                types: ['json']
-            });
-            
-            // Set initial value if exists
-            if (node.schema) {
-                $('#node-input-schema').typedInput('value', node.schema);
-            } else {
-                // Default schema template
-                const defaultSchema = {
-                    type: "object",
-                    properties: {
-                        param1: { type: "string" },
-                        param2: { type: "number" }
-                    },
-                    required: ["param1"]
-                };
-                $('#node-input-schema').typedInput('value', JSON.stringify(defaultSchema, null, 2));
-            }
-            
             const toggleSchema = function() {
                 if ($('#node-input-validateSchema').is(':checked')) {
                     $('#schema-row').show();
@@ -54,10 +30,6 @@
             
             $('#node-input-validateSchema').on('change', toggleSchema);
             toggleSchema();
-        },
-        oneditsave: function() {
-            // Get value from typedInput
-            this.schema = $('#node-input-schema').typedInput('value');
         }
     });
 </script>
@@ -86,8 +58,15 @@
     
     <div class="form-row" id="schema-row" style="display:none;">
         <label for="node-input-schema" style="vertical-align:top;"><i class="fa fa-list-alt"></i> Schema</label>
-        <input type="text" id="node-input-schema" style="width:70%;">
-        <div class="form-tips" style="margin-left:100px;">JSON Schema (Draft 7) for parameter validation. Click the button to open the JSON editor.</div>
+        <textarea id="node-input-schema" rows="8" style="width:70%; font-family:monospace; font-size:12px;" placeholder='{
+  "type": "object",
+  "properties": {
+    "a": { "type": "number" },
+    "b": { "type": "number" }
+  },
+  "required": ["a", "b"]
+}'></textarea>
+        <div class="form-tips" style="margin-left:100px;">JSON Schema (Draft 7) for parameter validation</div>
     </div>
 </script>
 
