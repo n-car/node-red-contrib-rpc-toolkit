@@ -1,126 +1,65 @@
 <script type="text/javascript">
     RED.nodes.registerType('rpc-server', {
-        category: 'network',
-        color: '#3FADB5',
+        category: 'config',
         defaults: {
             name: { value: "" },
-            port: { value: 1880, required: true, validate: RED.validators.number() },
             endpoint: { value: "/rpc", required: true },
             safeEnabled: { value: false },
-            corsEnabled: { value: false },
-            authEnabled: { value: false },
-            rateLimitEnabled: { value: false },
-            maxRequests: { value: 100 },
-            windowMs: { value: 60000 }
+            corsEnabled: { value: false }
         },
-        inputs: 0,
-        outputs: 1,
-        icon: "white-globe.svg",
         label: function() {
-            return this.name || "rpc server";
-        },
-        labelStyle: function() {
-            return this.name ? "node_label_italic" : "";
-        },
-        oneditprepare: function() {
-            // Setup UI interactions
-            $("#node-input-authEnabled").change(function() {
-                if ($(this).is(":checked")) {
-                    $(".auth-config").show();
-                } else {
-                    $(".auth-config").hide();
-                }
-            });
-            
-            $("#node-input-rateLimitEnabled").change(function() {
-                if ($(this).is(":checked")) {
-                    $(".rate-limit-config").show();
-                } else {
-                    $(".rate-limit-config").hide();
-                }
-            });
+            return this.name || "RPC Server (" + this.endpoint + ")";
         }
     });
 </script>
 
 <script type="text/html" data-template-name="rpc-server">
     <div class="form-row">
-        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-        <input type="text" id="node-input-name" placeholder="Name">
+        <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-config-input-name" placeholder="RPC Server">
     </div>
     
     <div class="form-row">
-        <label for="node-input-port"><i class="fa fa-plug"></i> Port</label>
-        <input type="number" id="node-input-port" placeholder="1880">
-    </div>
-    
-    <div class="form-row">
-        <label for="node-input-endpoint"><i class="fa fa-sitemap"></i> Endpoint</label>
-        <input type="text" id="node-input-endpoint" placeholder="/rpc">
+        <label for="node-config-input-endpoint"><i class="fa fa-sitemap"></i> Endpoint</label>
+        <input type="text" id="node-config-input-endpoint" placeholder="/rpc">
+        <div class="form-tips">HTTP endpoint path (e.g., /rpc, /api/rpc)</div>
     </div>
     
     <div class="form-row">
         <label>&nbsp;</label>
-        <input type="checkbox" id="node-input-safeEnabled" style="display:inline-block; width:auto; vertical-align:top;">
-        <label for="node-input-safeEnabled" style="width:70%">Enable Safe Mode</label>
+        <input type="checkbox" id="node-config-input-safeEnabled" style="display:inline-block; width:auto; vertical-align:top;">
+        <label for="node-config-input-safeEnabled" style="width:70%">Enable Safe Mode</label>
+        <div class="form-tips">Type-safe serialization with S:, D:, n prefixes</div>
     </div>
     
     <div class="form-row">
         <label>&nbsp;</label>
-        <input type="checkbox" id="node-input-corsEnabled" style="display:inline-block; width:auto; vertical-align:top;">
-        <label for="node-input-corsEnabled" style="width:70%">Enable CORS</label>
-    </div>
-    
-    <div class="form-row">
-        <label>&nbsp;</label>
-        <input type="checkbox" id="node-input-authEnabled" style="display:inline-block; width:auto; vertical-align:top;">
-        <label for="node-input-authEnabled" style="width:70%">Enable Authentication</label>
-    </div>
-    
-    <div class="form-row">
-        <label>&nbsp;</label>
-        <input type="checkbox" id="node-input-rateLimitEnabled" style="display:inline-block; width:auto; vertical-align:top;">
-        <label for="node-input-rateLimitEnabled" style="width:70%">Enable Rate Limiting</label>
-    </div>
-    
-    <div class="form-row rate-limit-config" style="display:none">
-        <label for="node-input-maxRequests"><i class="fa fa-tachometer"></i> Max Requests</label>
-        <input type="number" id="node-input-maxRequests" placeholder="100">
-    </div>
-    
-    <div class="form-row rate-limit-config" style="display:none">
-        <label for="node-input-windowMs"><i class="fa fa-clock-o"></i> Window (ms)</label>
-        <input type="number" id="node-input-windowMs" placeholder="60000">
+        <input type="checkbox" id="node-config-input-corsEnabled" style="display:inline-block; width:auto; vertical-align:top;">
+        <label for="node-config-input-corsEnabled" style="width:70%">Enable CORS</label>
+        <div class="form-tips">Allow cross-origin requests</div>
     </div>
 </script>
 
 <script type="text/html" data-help-name="rpc-server">
-    <p>Creates a JSON-RPC 2.0 server that handles incoming RPC requests.</p>
+    <p>Configuration node for a JSON-RPC 2.0 server.</p>
     
     <h3>Configuration</h3>
     <dl class="message-properties">
-        <dt>Port <span class="property-type">number</span></dt>
-        <dd>The port number for the HTTP server (default: 1880)</dd>
-        
         <dt>Endpoint <span class="property-type">string</span></dt>
-        <dd>The URL path for RPC requests (default: /rpc)</dd>
+        <dd>The URL path for RPC requests (default: /rpc). The server will be available at http://localhost:1880/rpc</dd>
         
         <dt>Safe Mode <span class="property-type">boolean</span></dt>
-        <dd>Enable type-safe serialization with prefixes (S:, D:, n)</dd>
+        <dd>Enable type-safe serialization with prefixes (S: for strings, D: for dates, n suffix for NaN/Infinity)</dd>
         
         <dt>CORS <span class="property-type">boolean</span></dt>
-        <dd>Enable Cross-Origin Resource Sharing</dd>
-    </dl>
-    
-    <h3>Outputs</h3>
-    <dl class="message-properties">
-        <dt>payload <span class="property-type">object</span></dt>
-        <dd>Monitoring events for requests and responses</dd>
+        <dd>Enable Cross-Origin Resource Sharing for browser access</dd>
     </dl>
     
     <h3>Details</h3>
-    <p>This node creates an HTTP server that accepts JSON-RPC 2.0 requests. 
-    Use with <code>rpc-method</code> nodes to register handler functions.</p>
+    <p>This configuration node creates a global HTTP endpoint that handles JSON-RPC 2.0 requests. 
+    It doesn't appear in the flow - instead, <code>rpc-method</code> nodes reference it to register their handlers.</p>
+    
+    <p>The server automatically starts when Node-RED starts and uses the built-in HTTP server.</p>
     
     <h3>References</h3>
     <ul>

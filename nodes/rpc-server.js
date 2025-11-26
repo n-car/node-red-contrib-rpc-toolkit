@@ -1,6 +1,6 @@
 /**
- * RPC Server Node for Node-RED
- * Creates an HTTP server that handles JSON-RPC 2.0 requests
+ * RPC Server Config Node for Node-RED
+ * Creates a global HTTP endpoint for JSON-RPC 2.0 requests
  */
 
 const { RpcEndpoint } = require('rpc-express-toolkit');
@@ -11,7 +11,6 @@ module.exports = function(RED) {
         const node = this;
         
         // Configuration
-        const port = config.port || 1880;
         const endpoint = config.endpoint || '/rpc';
         const safeEnabled = config.safeEnabled || false;
         const corsEnabled = config.corsEnabled || false;
@@ -25,8 +24,8 @@ module.exports = function(RED) {
         
         node.rpc = new RpcEndpoint(endpoint, {}, rpcOptions);
         
-        // Create Express app if not exists
-        if (!RED.httpNode._router) {
+        // Verify HTTP server is available
+        if (!RED.httpNode) {
             node.error("HTTP server not available");
             return;
         }
@@ -45,21 +44,11 @@ module.exports = function(RED) {
             });
         }
         
-        // Handle RPC requests
-        RED.httpNode.post(endpoint, async (req, res) => {
+        // Store the route handler so we can remove it later
+        node.routeHandler = async (req, res) => {
             try {
                 const body = JSON.stringify(req.body);
                 const response = await node.rpc.handleRequest(body);
-                
-                // Emit event for monitoring
-                node.send({
-                    topic: 'rpc.request',
-                    payload: {
-                        method: req.body.method,
-                        timestamp: Date.now()
-                    }
-                });
-                
                 res.json(JSON.parse(response));
             } catch (error) {
                 node.error('RPC handling error: ' + error.message);
@@ -72,12 +61,21 @@ module.exports = function(RED) {
                     id: null
                 });
             }
-        });
+        };
         
-        node.status({ fill: "green", shape: "dot", text: `listening on ${endpoint}` });
+        // Register HTTP endpoint
+        RED.httpNode.post(endpoint, node.routeHandler);
         
-        node.on('close', function() {
-            node.status({});
+        node.log(`RPC Server listening on ${endpoint}`);
+        
+        node.on('close', function(done) {
+            // Remove HTTP route
+            if (RED.httpNode._router && RED.httpNode._router.stack) {
+                RED.httpNode._router.stack = RED.httpNode._router.stack.filter(
+                    layer => layer.route?.path !== endpoint
+                );
+            }
+            done();
         });
     }
     
