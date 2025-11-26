@@ -1,7 +1,9 @@
 /**
  * RPC Method Node for Node-RED
  * Registers a method handler in the RPC server
- * This node only OUTPUTS requests, use rpc-response to send back results
+ * Output 1: Request parameters (for processing)
+ * Output 2: Errors during processing
+ * Input: Result to send back to caller
  */
 
 module.exports = function(RED) {
@@ -23,10 +25,8 @@ module.exports = function(RED) {
             return;
         }
         
-        // Store pending requests in server node (shared across response nodes)
-        if (!serverNode.pendingRequests) {
-            serverNode.pendingRequests = new Map();
-        }
+        // Store pending requests
+        node.pendingRequests = new Map();
         
         // Register method in RPC server
         // Handler signature: (req, context, params)
@@ -34,24 +34,24 @@ module.exports = function(RED) {
             return new Promise((resolve, reject) => {
                 const requestId = 'rpc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                 
-                // Send to flow - params are the actual RPC parameters
+                // Send to flow - output 1 (success path)
                 const msg = {
-                    payload: params,  // This should now be {a: 1, b: 2}
+                    payload: params,
                     rpc: {
                         method: methodName,
                         id: requestId
                     }
                 };
                 
-                // Store resolver in server node (accessible by response nodes)
-                serverNode.pendingRequests.set(requestId, { resolve, reject });
+                // Store resolver
+                node.pendingRequests.set(requestId, { resolve, reject });
                 
-                node.send(msg);
+                node.send([msg, null]); // Send to first output only
                 
                 // Timeout after 30 seconds
                 setTimeout(() => {
-                    if (serverNode.pendingRequests.has(requestId)) {
-                        serverNode.pendingRequests.delete(requestId);
+                    if (node.pendingRequests.has(requestId)) {
+                        node.pendingRequests.delete(requestId);
                         reject(new Error('Method timeout'));
                     }
                 }, 30000);
@@ -60,7 +60,34 @@ module.exports = function(RED) {
         
         node.status({ fill: "green", shape: "dot", text: `registered: ${methodName}` });
         
+        // Handle responses from flow (input)
+        node.on('input', function(msg) {
+            const requestId = msg.rpc?.id;
+            
+            if (!requestId || !node.pendingRequests.has(requestId)) {
+                node.warn('No pending request found for ID: ' + requestId);
+                return;
+            }
+            
+            const { resolve, reject } = node.pendingRequests.get(requestId);
+            node.pendingRequests.delete(requestId);
+            
+            // Check if it's an error
+            if (msg.error) {
+                reject(msg.error);
+                // Also send to error output (output 2)
+                node.send([null, msg]);
+            } else {
+                resolve(msg.payload);
+            }
+        });
+        
         node.on('close', function() {
+            // Reject all pending requests
+            for (const [id, { reject }] of node.pendingRequests) {
+                reject(new Error('Node closed'));
+            }
+            node.pendingRequests.clear();
             node.status({});
         });
     }
