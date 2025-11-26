@@ -16,6 +16,9 @@ module.exports = function(RED) {
         const safeEnabled = config.safeEnabled || false;
         const corsEnabled = config.corsEnabled || false;
         
+        // Store endpoint for info display
+        node.endpoint = endpoint;
+        
         // Verify HTTP server is available
         if (!RED.httpNode) {
             node.error("HTTP server not available");
