@@ -40,8 +40,8 @@
   },
   "homepage": "https://github.com/n-car/node-red-contrib-rpc-toolkit#readme",
   "dependencies": {
-    "rpc-express-toolkit": "^4.2.0",
-    "express": "^4.18.0"
+    "express": "^4.18.0",
+    "rpc-express-toolkit": "^4.2.0"
   },
   "devDependencies": {
     "mocha": "^10.0.0",
