@@ -5,7 +5,9 @@
         defaults: {
             name: { value: "" },
             server: { value: "", type: "rpc-server", required: true },
-            methodName: { value: "", required: true }
+            methodName: { value: "", required: true },
+            schema: { value: "" },
+            validateSchema: { value: false }
         },
         inputs: 1,
         outputs: 2,
@@ -16,6 +18,18 @@
         },
         labelStyle: function() {
             return this.name ? "node_label_italic" : "";
+        },
+        oneditprepare: function() {
+            const toggleSchema = function() {
+                if ($('#node-input-validateSchema').is(':checked')) {
+                    $('#schema-row').show();
+                } else {
+                    $('#schema-row').hide();
+                }
+            };
+            
+            $('#node-input-validateSchema').on('change', toggleSchema);
+            toggleSchema();
         }
     });
 </script>
@@ -35,6 +49,25 @@
         <label for="node-input-methodName"><i class="fa fa-code"></i> Method Name</label>
         <input type="text" id="node-input-methodName" placeholder="myMethod">
     </div>
+    
+    <div class="form-row">
+        <label>&nbsp;</label>
+        <input type="checkbox" id="node-input-validateSchema" style="display:inline-block; width:auto; vertical-align:top;">
+        <label for="node-input-validateSchema" style="width:70%">Validate Schema</label>
+    </div>
+    
+    <div class="form-row" id="schema-row" style="display:none;">
+        <label for="node-input-schema" style="vertical-align:top;"><i class="fa fa-list-alt"></i> Schema</label>
+        <textarea id="node-input-schema" placeholder='{
+  "type": "object",
+  "properties": {
+    "a": { "type": "number" },
+    "b": { "type": "number" }
+  },
+  "required": ["a", "b"]
+}' style="width:70%; height:150px; font-family:monospace; font-size:12px;"></textarea>
+        <div class="form-tips" style="margin-left:100px;">JSON Schema (Draft 7) for parameter validation</div>
+    </div>
 </script>
 
 <script type="text/html" data-help-name="rpc-method">
@@ -47,6 +80,12 @@
         
         <dt>Method Name <span class="property-type">string</span></dt>
         <dd>The name of the method to register</dd>
+        
+        <dt>Validate Schema <span class="property-type">boolean</span></dt>
+        <dd>Enable parameter validation with JSON Schema</dd>
+        
+        <dt class="optional">Schema <span class="property-type">object</span></dt>
+        <dd>JSON Schema (Draft 7) for validating method parameters. Requests with invalid parameters will be rejected with error code -32602.</dd>
     </dl>
     
     <h3>Inputs</h3>

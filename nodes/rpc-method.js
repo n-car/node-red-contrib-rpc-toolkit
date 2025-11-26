@@ -14,6 +14,18 @@ module.exports = function(RED) {
         // Configuration
         const methodName = config.methodName;
         const serverNode = RED.nodes.getNode(config.server);
+        const validateSchema = config.validateSchema;
+        let schema = null;
+        
+        // Parse schema if validation is enabled
+        if (validateSchema && config.schema) {
+            try {
+                schema = JSON.parse(config.schema);
+            } catch (e) {
+                node.error("Invalid JSON Schema: " + e.message);
+                return;
+            }
+        }
         
         if (!serverNode) {
             node.error("RPC Server not configured");
@@ -27,6 +39,12 @@ module.exports = function(RED) {
         
         // Store pending requests
         node.pendingRequests = new Map();
+        
+        // Prepare method options
+        const methodOptions = {};
+        if (schema) {
+            methodOptions.schema = schema;
+        }
         
         // Register method in RPC server
         // Handler signature: (req, context, params)
@@ -56,14 +74,15 @@ module.exports = function(RED) {
                     }
                 }, 30000);
             });
-        });
+        }, methodOptions);
         
         // Track registration in server
         if (serverNode.registerMethod) {
             serverNode.registerMethod(methodName);
         }
         
-        node.status({ fill: "green", shape: "dot", text: `registered: ${methodName}` });
+        const statusText = schema ? `${methodName} ✓` : `registered: ${methodName}`;
+        node.status({ fill: "green", shape: "dot", text: statusText });
         
         // Handle responses from flow (input)
         node.on('input', function(msg) {

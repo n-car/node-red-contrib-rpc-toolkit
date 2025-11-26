@@ -13,6 +13,8 @@
         "name": "Sum Method",
         "server": "rpc-config-1",
         "methodName": "sum",
+        "schema": "{\"type\":\"object\",\"properties\":{\"a\":{\"type\":\"number\"},\"b\":{\"type\":\"number\"}},\"required\":[\"a\",\"b\"]}",
+        "validateSchema": true,
         "x": 300,
         "y": 200,
         "wires": [["function-add"]]
