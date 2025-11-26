@@ -160,8 +160,11 @@ Registers a method handler in the RPC server.
 - **Validate Schema** - Enable JSON Schema validation (checkbox)
 - **Schema** - Optional JSON Schema for validation
 
-**Input:** `msg.payload` = method parameters
-**Output:** Pass result to RPC Response node
+**Outputs:**
+- **Output 1** - Emits RPC parameters for processing (includes `msg.rpc.id` / `methodNodeId`)
+- **Output 2** - Emits immediate errors raised by the method node
+
+**Response Handling:** Send the final result (or error) to an **RPC Response** node to reply to the caller. Keep `msg.rpc` intact so the pending request can be matched.
 
 **Introspection Support:**
 When "Expose Schema" is enabled, clients can discover this method via:
@@ -186,9 +189,11 @@ Sends RPC response back to client.
 **Input:**
 - `msg.payload` - Result to return
 - `msg.rpc.id` - Request ID (from RPC Request)
+- `msg.rpc.methodNodeId` - Method node reference (added automatically)
 - `msg.error` - Error object (if error occurred)
 
 **Notes:**
+- Every RPC Method flow must end with an **RPC Response** node (or equivalent) to send the result back.
 - The **RPC Method** node automatically attaches `msg.rpc.methodNodeId` and `msg.rpc.id` so the response can be routed back to the correct pending request.
 - Set `msg.error` to return an RPC error response; otherwise `msg.payload` is used as the successful result.
 

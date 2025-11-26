@@ -36,7 +36,15 @@ A basic example showing how to create a local RPC server with a `sum` method tha
         "func": "// Input: msg.payload = { a: 5, b: 3 }\nconst { a, b } = msg.payload;\nmsg.payload = a + b;\nreturn msg;",
         "x": 500,
         "y": 200,
-        "wires": [["rpc-method-sum"]]
+        "wires": [["rpc-response-sum"]]
+    },
+    {
+        "id": "rpc-response-sum",
+        "type": "rpc-response",
+        "name": "Send Result",
+        "x": 700,
+        "y": 200,
+        "wires": []
     }
 ]
 ```
@@ -46,7 +54,7 @@ A basic example showing how to create a local RPC server with a `sum` method tha
 2. RPC Method node registers the `sum` method
 3. When called, it outputs `{ a: 5, b: 3 }` to the function
 4. Function calculates `a + b` and returns result
-5. Result goes back to RPC Method input to send response
+5. Result passes through an **RPC Response** node to send the reply back to the caller
 
 **Test with curl:**
 ```bash

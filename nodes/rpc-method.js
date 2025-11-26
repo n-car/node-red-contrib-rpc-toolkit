@@ -3,7 +3,7 @@
  * Registers a method handler in the RPC server
  * Output 1: Request parameters (for processing)
  * Output 2: Errors during processing
- * Input: Result to send back to caller
+ * Responses must go through the RPC Response node
  */
 
 module.exports = function(RED) {
@@ -112,12 +112,6 @@ module.exports = function(RED) {
             }
         };
 
-        // Handle responses from flow (input)
-        node.on('input', function(msg) {
-            const requestId = msg.rpc?.id;
-            node.respondToRequest(requestId, msg);
-        });
-        
         node.on('close', function() {
             // Reject all pending requests
             for (const [id, { reject }] of node.pendingRequests) {

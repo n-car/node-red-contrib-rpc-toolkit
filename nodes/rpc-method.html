@@ -11,7 +11,7 @@
             schema: { value: "" },
             validateSchema: { value: false }
         },
-        inputs: 1,
+        inputs: 0,
         outputs: 2,
         outputLabels: ["request", "error"],
         icon: "function.svg",
@@ -329,18 +329,6 @@
         <dd>JSON Schema (Draft 7) for validating method parameters. Requests with invalid parameters will be rejected with error code -32602.</dd>
     </dl>
     
-    <h3>Inputs</h3>
-    <dl class="message-properties">
-        <dt>payload <span class="property-type">any</span></dt>
-        <dd>The result to return to the caller</dd>
-        
-        <dt>rpc.id <span class="property-type">string</span></dt>
-        <dd>Request ID (automatically passed through)</dd>
-        
-        <dt class="optional">error <span class="property-type">object</span></dt>
-        <dd>Error to return to caller (will also output to error port)</dd>
-    </dl>
-    
     <h3>Outputs</h3>
     <ol class="node-ports">
         <li>Request
@@ -363,13 +351,17 @@
         </li>
     </ol>
     
+    <h3>Sending Responses</h3>
+    <p>Use an <strong>RPC Response</strong> node to send the final result (or error) back to the caller. 
+    Keep the original <code>msg.rpc</code> fields intact so the response can be routed to the pending request.</p>
+    
     <h3>Details</h3>
     <p>This node registers a method in an RPC server. When the method is called:</p>
     <ol>
         <li>Parameters are sent to <strong>output 1</strong> (request port)</li>
         <li>Process them in your flow</li>
-        <li>Send the result back to this node's <strong>input</strong></li>
-        <li>If an error occurs, it will also be sent to <strong>output 2</strong> (error port)</li>
+        <li>Send the result to an <strong>RPC Response</strong> node to reply to the client</li>
+        <li>If an error occurs in the RPC Method node itself, it will also be sent to <strong>output 2</strong> (error port)</li>
     </ol>
     
     <h3>Example Flow</h3>
@@ -377,8 +369,8 @@
   ↓ (output 1)
 [Function: a + b]
   ↓
-[back to RPC Method input]
-  → Response sent to caller
+[RPC Response]
+  → Sends result/error to caller
   
 If error:
   ↓ (output 2)

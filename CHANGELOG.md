@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - HTTP admin endpoint for config UI data
 
 ### Changed
-- **BREAKING**: Removed rpc-response node (no longer needed)
+- **BREAKING**: RPC Method node no longer accepts direct replies; use the RPC Response node to finish calls
 - RPC Method node now uses dual-output pattern (request, error)
 - RPC Client node now uses dual-output pattern (success, error)
 - Simplified flow patterns - no need to check msg.error
