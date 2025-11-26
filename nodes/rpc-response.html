@@ -1,0 +1,43 @@
+<script type="text/javascript">
+    RED.nodes.registerType('rpc-response', {
+        category: 'network',
+        color: '#3FADB5',
+        defaults: {
+            name: { value: "" }
+        },
+        inputs: 1,
+        outputs: 0,
+        icon: "arrow-out.svg",
+        label: function() {
+            return this.name || "rpc response";
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="rpc-response">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+
+<script type="text/html" data-help-name="rpc-response">
+    <p>Sends a JSON-RPC 2.0 response back to the client.</p>
+    
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">any</span></dt>
+        <dd>The result to return</dd>
+        
+        <dt>rpc.id <span class="property-type">any</span></dt>
+        <dd>The request ID from rpc-request node</dd>
+        
+        <dt class="optional">error <span class="property-type">object</span></dt>
+        <dd>Error object if the request failed</dd>
+    </dl>
+    
+    <h3>Details</h3>
+    <p>This node sends the final RPC response. Use it at the end of your
+    method handler flow. If <code>msg.error</code> is set, it sends an error
+    response, otherwise it sends the result from <code>msg.payload</code>.</p>
+</script>

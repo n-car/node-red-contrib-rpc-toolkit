@@ -1,0 +1,54 @@
+{
+  "name": "node-red-contrib-rpc-toolkit",
+  "version": "1.0.0",
+  "description": "JSON-RPC 2.0 client and server nodes for Node-RED with cross-platform support (Express, PHP, .NET, Arduino)",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha test/**/*_spec.js"
+  },
+  "keywords": [
+    "node-red",
+    "json-rpc",
+    "rpc",
+    "client",
+    "server",
+    "iot",
+    "automation",
+    "microservices"
+  ],
+  "node-red": {
+    "version": ">=3.0.0",
+    "nodes": {
+      "rpc-server": "nodes/rpc-server.js",
+      "rpc-client": "nodes/rpc-client.js",
+      "rpc-method": "nodes/rpc-method.js",
+      "rpc-request": "nodes/rpc-request.js",
+      "rpc-response": "nodes/rpc-response.js"
+    }
+  },
+  "author": {
+    "name": "Nicola Carpanese",
+    "email": "nicola@carpanese.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/n-car/node-red-contrib-rpc-toolkit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/n-car/node-red-contrib-rpc-toolkit/issues"
+  },
+  "homepage": "https://github.com/n-car/node-red-contrib-rpc-toolkit#readme",
+  "dependencies": {
+    "rpc-express-toolkit": "^4.2.0",
+    "express": "^4.18.0"
+  },
+  "devDependencies": {
+    "mocha": "^10.0.0",
+    "node-red": "^3.1.0",
+    "node-red-node-test-helper": "^0.3.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

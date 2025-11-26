@@ -1,0 +1,106 @@
+<script type="text/javascript">
+    RED.nodes.registerType('rpc-client', {
+        category: 'network',
+        color: '#3FADB5',
+        defaults: {
+            name: { value: "" },
+            serverUrl: { value: "", required: true },
+            method: { value: "", required: true },
+            timeout: { value: 5000, validate: RED.validators.number() },
+            safeEnabled: { value: false },
+            authToken: { value: "" }
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "white-globe.svg",
+        label: function() {
+            return this.name || `rpc: ${this.method}`;
+        },
+        labelStyle: function() {
+            return this.name ? "node_label_italic" : "";
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="rpc-client">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    
+    <div class="form-row">
+        <label for="node-input-serverUrl"><i class="fa fa-server"></i> Server URL</label>
+        <input type="text" id="node-input-serverUrl" placeholder="http://localhost:3000/rpc">
+    </div>
+    
+    <div class="form-row">
+        <label for="node-input-method"><i class="fa fa-code"></i> Method</label>
+        <input type="text" id="node-input-method" placeholder="methodName">
+    </div>
+    
+    <div class="form-row">
+        <label for="node-input-timeout"><i class="fa fa-clock-o"></i> Timeout (ms)</label>
+        <input type="number" id="node-input-timeout" placeholder="5000">
+    </div>
+    
+    <div class="form-row">
+        <label for="node-input-authToken"><i class="fa fa-key"></i> Auth Token</label>
+        <input type="text" id="node-input-authToken" placeholder="Optional">
+    </div>
+    
+    <div class="form-row">
+        <label>&nbsp;</label>
+        <input type="checkbox" id="node-input-safeEnabled" style="display:inline-block; width:auto; vertical-align:top;">
+        <label for="node-input-safeEnabled" style="width:70%">Enable Safe Mode</label>
+    </div>
+</script>
+
+<script type="text/html" data-help-name="rpc-client">
+    <p>Calls a remote JSON-RPC 2.0 server method.</p>
+    
+    <h3>Configuration</h3>
+    <dl class="message-properties">
+        <dt>Server URL <span class="property-type">string</span></dt>
+        <dd>The full URL of the RPC server endpoint</dd>
+        
+        <dt>Method <span class="property-type">string</span></dt>
+        <dd>The RPC method name to call</dd>
+        
+        <dt>Timeout <span class="property-type">number</span></dt>
+        <dd>Request timeout in milliseconds (default: 5000)</dd>
+    </dl>
+    
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">object</span></dt>
+        <dd>Method parameters as an object</dd>
+        
+        <dt class="optional">method <span class="property-type">string</span></dt>
+        <dd>Override the configured method name</dd>
+    </dl>
+    
+    <h3>Outputs</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">any</span></dt>
+        <dd>The result from the RPC call</dd>
+        
+        <dt>rpc <span class="property-type">object</span></dt>
+        <dd>RPC metadata (method, success)</dd>
+        
+        <dt class="optional">error <span class="property-type">object</span></dt>
+        <dd>Error information if the call failed</dd>
+    </dl>
+    
+    <h3>Details</h3>
+    <p>This node makes JSON-RPC 2.0 calls to remote servers. 
+    Compatible with Express, PHP, .NET, and Arduino RPC servers.</p>
+    
+    <h3>Examples</h3>
+    <p>Call an Arduino temperature sensor:</p>
+    <pre>msg.payload = {}; // No parameters
+// Output: msg.payload = 25.5</pre>
+    
+    <p>Call a PHP API with parameters:</p>
+    <pre>msg.payload = { userId: 123 };
+// Output: msg.payload = { name: "John", ... }</pre>
+</script>

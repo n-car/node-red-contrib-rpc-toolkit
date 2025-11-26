@@ -1,0 +1,47 @@
+<script type="text/javascript">
+    RED.nodes.registerType('rpc-request', {
+        category: 'network',
+        color: '#3FADB5',
+        defaults: {
+            name: { value: "" }
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "arrow-in.svg",
+        label: function() {
+            return this.name || "rpc request";
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="rpc-request">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+
+<script type="text/html" data-help-name="rpc-request">
+    <p>Parses an incoming JSON-RPC 2.0 request.</p>
+    
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">object</span></dt>
+        <dd>The raw RPC request object</dd>
+    </dl>
+    
+    <h3>Outputs</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">object</span></dt>
+        <dd>The method parameters</dd>
+        
+        <dt>rpc.method <span class="property-type">string</span></dt>
+        <dd>The method name</dd>
+        
+        <dt>rpc.id <span class="property-type">any</span></dt>
+        <dd>The request ID</dd>
+        
+        <dt>rpc.jsonrpc <span class="property-type">string</span></dt>
+        <dd>Protocol version (always "2.0")</dd>
+    </dl>
+</script>
