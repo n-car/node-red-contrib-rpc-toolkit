@@ -58,6 +58,11 @@ module.exports = function(RED) {
             });
         });
         
+        // Track registration in server
+        if (serverNode.registerMethod) {
+            serverNode.registerMethod(methodName);
+        }
+        
         node.status({ fill: "green", shape: "dot", text: `registered: ${methodName}` });
         
         // Handle responses from flow (input)
@@ -88,6 +93,12 @@ module.exports = function(RED) {
                 reject(new Error('Node closed'));
             }
             node.pendingRequests.clear();
+            
+            // Unregister from server
+            if (serverNode.unregisterMethod) {
+                serverNode.unregisterMethod(methodName);
+            }
+            
             node.status({});
         });
     }

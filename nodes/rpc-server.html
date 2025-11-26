@@ -9,6 +9,23 @@
         },
         label: function() {
             return this.name || "RPC Server (" + this.endpoint + ")";
+        },
+        oneditprepare: function() {
+            const node = this;
+            
+            // Show server info
+            $.getJSON('rpc-server-info/' + node.id, function(data) {
+                if (data && data.active) {
+                    const info = '<div style="margin-top: 15px; padding: 10px; background: #f0f0f0; border-radius: 4px;">' +
+                        '<strong>Server Status</strong><br>' +
+                        '<span style="color: green;">● Active</span><br>' +
+                        '<strong>Endpoint:</strong> ' + data.endpoint + '<br>' +
+                        '<strong>Registered Methods:</strong> ' + data.methodCount + '<br>' +
+                        (data.methods.length > 0 ? '<small>' + data.methods.join(', ') + '</small>' : '<small>(none)</small>') +
+                        '</div>';
+                    $('#node-config-server-info').html(info);
+                }
+            });
         }
     });
 </script>
@@ -37,6 +54,10 @@
         <input type="checkbox" id="node-config-input-corsEnabled" style="display:inline-block; width:auto; vertical-align:top;">
         <label for="node-config-input-corsEnabled" style="width:70%">Enable CORS</label>
         <div class="form-tips">Allow cross-origin requests</div>
+    </div>
+    
+    <div class="form-row">
+        <div id="node-config-server-info"></div>
     </div>
 </script>
 

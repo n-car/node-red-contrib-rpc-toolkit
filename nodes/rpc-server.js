@@ -50,10 +50,30 @@ module.exports = function(RED) {
         
         node.rpc = new RpcEndpoint(app, {}, rpcOptions);
         
+        // Initialize tracking
+        node.pendingRequests = new Map();
+        node.registeredMethods = [];
+        
         // Mount the RPC app at the configured endpoint
         RED.httpNode.use(endpoint, app);
         
         node.log(`RPC Server listening on ${endpoint}`);
+        
+        // Expose method registration tracking
+        node.registerMethod = function(methodName) {
+            if (!node.registeredMethods.includes(methodName)) {
+                node.registeredMethods.push(methodName);
+                node.log(`Method registered: ${methodName} (${node.registeredMethods.length} total)`);
+            }
+        };
+        
+        node.unregisterMethod = function(methodName) {
+            const index = node.registeredMethods.indexOf(methodName);
+            if (index > -1) {
+                node.registeredMethods.splice(index, 1);
+                node.log(`Method unregistered: ${methodName} (${node.registeredMethods.length} total)`);
+            }
+        };
         
         node.on('close', function(done) {
             // Remove HTTP route
@@ -67,4 +87,19 @@ module.exports = function(RED) {
     }
     
     RED.nodes.registerType("rpc-server", RpcServerNode);
+    
+    // Endpoint to get server info for config UI
+    RED.httpAdmin.get('/rpc-server-info/:id', function(req, res) {
+        const node = RED.nodes.getNode(req.params.id);
+        if (node && node.rpc) {
+            res.json({
+                active: true,
+                endpoint: node.endpoint,
+                methodCount: node.registeredMethods ? node.registeredMethods.length : 0,
+                methods: node.registeredMethods || []
+            });
+        } else {
+            res.json({ active: false });
+        }
+    });
 };
