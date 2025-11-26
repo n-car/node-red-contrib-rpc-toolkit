@@ -59,17 +59,23 @@ module.exports = function(RED) {
         
         // Handle responses from flow
         node.on('input', function(msg) {
+            node.warn('RPC Method received input - ID: ' + msg.rpc?.id + ', Payload: ' + JSON.stringify(msg.payload));
+            
             const requestId = msg.rpc?.id;
             
             if (requestId && node.pendingRequests.has(requestId)) {
+                node.warn('Found pending request for ID: ' + requestId);
                 const { resolve, reject } = node.pendingRequests.get(requestId);
                 node.pendingRequests.delete(requestId);
                 
                 if (msg.error) {
                     reject(msg.error);
                 } else {
+                    node.warn('Resolving with: ' + JSON.stringify(msg.payload));
                     resolve(msg.payload);
                 }
+            } else {
+                node.warn('No pending request found for ID: ' + requestId + ', Pending: ' + Array.from(node.pendingRequests.keys()).join(', '));
             }
         });
         

@@ -21,7 +21,7 @@
         "id": "function-add",
         "type": "function",
         "name": "Add Numbers",
-        "func": "// Input: msg.payload = { a: 5, b: 3 }\nconst { a, b } = msg.payload;\nmsg.payload = a + b;\nreturn msg;",
+        "func": "// Input: msg.payload = { a: 5, b: 3 }\nconst { a, b } = msg.payload;\n\n// Calculate sum\nmsg.payload = a + b;\n\n// IMPORTANT: Keep msg.rpc.id for response routing\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
