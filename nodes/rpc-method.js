@@ -57,6 +57,9 @@ module.exports = function(RED) {
             return new Promise((resolve, reject) => {
                 const requestId = 'rpc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 
+                // Flash yellow status when request arrives
+                node.status({ fill: "yellow", shape: "dot", text: statusText + " (processing...)" });
+                
                 // Send to flow - output 1 (success path)
                 const msg = {
                     payload: params,
@@ -76,7 +79,13 @@ module.exports = function(RED) {
                 setTimeout(() => {
                     if (node.pendingRequests.has(requestId)) {
                         node.pendingRequests.delete(requestId);
+                        node.status({ fill: "red", shape: "ring", text: statusText + " (timeout)" });
                         reject(new Error('Method timeout'));
+                        
+                        // Return to green after 2 seconds
+                        setTimeout(() => {
+                            node.status({ fill: "green", shape: "dot", text: statusText });
+                        }, 2000);
                     }
                 }, 30000);
             });
@@ -105,10 +114,24 @@ module.exports = function(RED) {
             // Check if it's an error
             if (msg.error) {
                 reject(msg.error);
+                // Show red status briefly
+                node.status({ fill: "red", shape: "ring", text: statusText + " (error)" });
                 // Also send to error output (output 2)
                 node.send([null, msg]);
+                
+                // Return to green after 2 seconds
+                setTimeout(() => {
+                    node.status({ fill: "green", shape: "dot", text: statusText });
+                }, 2000);
             } else {
                 resolve(msg.payload);
+                // Show blue status briefly for success
+                node.status({ fill: "blue", shape: "dot", text: statusText + " (success)" });
+                
+                // Return to green after 500ms
+                setTimeout(() => {
+                    node.status({ fill: "green", shape: "dot", text: statusText });
+                }, 500);
             }
         };
 
