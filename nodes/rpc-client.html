@@ -19,6 +19,74 @@
         },
         labelStyle: function() {
             return this.name ? "node_label_italic" : "";
+        },
+        oneditprepare: function() {
+            const node = this;
+            
+            // Load methods button handler
+            $('#node-input-load-methods').click(function() {
+                const serverUrl = $('#node-input-serverUrl').val();
+                if (!serverUrl) {
+                    RED.notify('Please enter a server URL first', 'warning');
+                    return;
+                }
+                
+                $('#node-input-load-methods').prop('disabled', true).text('Loading...');
+                
+                // Try to call __rpc.listMethods
+                fetch(serverUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jsonrpc: '2.0',
+                        method: '__rpc.listMethods',
+                        params: {},
+                        id: Date.now()
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.result && Array.isArray(data.result)) {
+                        const select = $('#node-input-method-select');
+                        select.empty();
+                        select.append('<option value="">-- Select a method --</option>');
+                        data.result.forEach(method => {
+                            select.append(`<option value="${method}">${method}</option>`);
+                        });
+                        select.show();
+                        $('#node-input-method').hide();
+                        RED.notify(`Loaded ${data.result.length} methods`, 'success');
+                    } else {
+                        RED.notify('Server does not support introspection or returned invalid data', 'warning');
+                    }
+                })
+                .catch(err => {
+                    RED.notify('Failed to load methods: ' + err.message, 'error');
+                })
+                .finally(() => {
+                    $('#node-input-load-methods').prop('disabled', false).text('Load Methods');
+                });
+            });
+            
+            // Method select change handler
+            $('#node-input-method-select').change(function() {
+                const selected = $(this).val();
+                if (selected) {
+                    $('#node-input-method').val(selected);
+                }
+            });
+            
+            // Manual input button
+            $('#node-input-manual-method').click(function() {
+                $('#node-input-method-select').hide();
+                $('#node-input-method').show();
+            });
+            
+            // Initialize with current value
+            if (node.method) {
+                $('#node-input-method').show();
+                $('#node-input-method-select').hide();
+            }
         }
     });
 </script>
@@ -36,7 +104,16 @@
     
     <div class="form-row">
         <label for="node-input-method"><i class="fa fa-code"></i> Method</label>
-        <input type="text" id="node-input-method" placeholder="methodName">
+        <div style="display: inline-block; width: 70%;">
+            <select id="node-input-method-select" style="width: 100%; display: none;"></select>
+            <input type="text" id="node-input-method" placeholder="methodName" style="width: 100%;">
+        </div>
+        <button type="button" id="node-input-load-methods" class="red-ui-button" style="margin-left: 5px;">
+            <i class="fa fa-refresh"></i> Load Methods
+        </button>
+        <button type="button" id="node-input-manual-method" class="red-ui-button" style="margin-left: 5px; display: none;" title="Enter method manually">
+            <i class="fa fa-keyboard-o"></i>
+        </button>
     </div>
     
     <div class="form-row">

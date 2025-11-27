@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _No unreleased changes._
 
+## [2.1.0] - 2025-11-27
+
+### Added
+- RPC Client: "Load Methods" button to query server introspection and populate method dropdown
+- RPC Client: Automatic method selection from server's available methods
+- Support for servers with __rpc.listMethods introspection
+
 ## [2.0.1] - 2025-11-27
 
 ### Fixed
