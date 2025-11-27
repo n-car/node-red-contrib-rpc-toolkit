@@ -51,6 +51,7 @@ module.exports = function(RED) {
             methodOptions.schema = schema;
         }
         
+        // Prepare status text
         let statusText = methodName;
         if (exposeSchema) statusText += ' 📋';
         if (schema) statusText += ' ✓';
@@ -105,11 +106,14 @@ module.exports = function(RED) {
         node.respondToRequest = function(requestId, msg) {
             if (!requestId || !node.pendingRequests.has(requestId)) {
                 node.warn('No pending request found for ID: ' + requestId);
+                node.warn('Active requests: ' + Array.from(node.pendingRequests.keys()).join(', '));
                 return;
             }
 
             const { resolve, reject } = node.pendingRequests.get(requestId);
             node.pendingRequests.delete(requestId);
+            
+            node.log('Responding to request ' + requestId + ' with ' + (msg.error ? 'error' : 'success'));
 
             // Check if it's an error
             if (msg.error) {

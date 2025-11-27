@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _No unreleased changes._
 
+## [2.0.1] - 2025-11-27
+
+### Fixed
+- Fixed statusText scope issue in rpc-method node  
+- Added debug logging for request handling
+- Improved visual status indicators timing
+
 ## [2.0.0] - 2025-11-27
 
 ### Added
