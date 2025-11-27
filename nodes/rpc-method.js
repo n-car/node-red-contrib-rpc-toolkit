@@ -51,6 +51,10 @@ module.exports = function(RED) {
             methodOptions.schema = schema;
         }
         
+        let statusText = methodName;
+        if (exposeSchema) statusText += ' 📋';
+        if (schema) statusText += ' ✓';
+
         // Register method in RPC server
         // Handler signature: (req, context, params)
         serverNode.rpc.addMethod(methodName, async (req, context, params) => {
@@ -96,10 +100,6 @@ module.exports = function(RED) {
             serverNode.registerMethod(methodName);
         }
         
-        let statusText = methodName;
-        if (exposeSchema) statusText += ' 📋';
-        if (schema) statusText += ' ✓';
-
         node.status({ fill: "green", shape: "dot", text: statusText });
 
         node.respondToRequest = function(requestId, msg) {
