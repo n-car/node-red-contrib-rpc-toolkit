@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+_No unreleased changes._
+
+## [2.0.0] - 2025-11-27
+
+### Added
+- Server status info panel in config node editor
+- Real-time display of registered methods and endpoint
+- HTTP admin endpoint for config UI data
+
+### Changed
+- **BREAKING**: RPC Method node no longer accepts direct replies; use the RPC Response node to finish calls
+- RPC Method node now uses dual-output pattern (request, error)
+- RPC Client node now uses dual-output pattern (success, error)
+- Simplified flow patterns - no need to check msg.error
+
+### Improved
+- Cleaner flow design with output routing instead of conditional logic
+- Better error handling with separate output ports
+- Server tracking of registered methods
+
 ## [1.2.0] - 2025-11-27
 
 ### Added
@@ -19,24 +41,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Updated rpc-express-toolkit to v4.2.1 to fix Ajv strict mode error with exposeSchema option
-
-## [Unreleased]
-
-### Added
-- Server status info panel in config node editor
-- Real-time display of registered methods and endpoint
-- HTTP admin endpoint for config UI data 
-
-### Changed
-- **BREAKING**: RPC Method node no longer accepts direct replies; use the RPC Response node to finish calls
-- RPC Method node now uses dual-output pattern (request, error)
-- RPC Client node now uses dual-output pattern (success, error)
-- Simplified flow patterns - no need to check msg.error 
-
-### Improved
-- Cleaner flow design with output routing instead of conditional logic
-- Better error handling with separate output ports
-- Server tracking of registered methods
 
 ## [1.1.1] - 2025-11-26
 
