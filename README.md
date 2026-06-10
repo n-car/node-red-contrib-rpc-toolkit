@@ -228,7 +228,7 @@ curl -X POST http://localhost:1880/rpc \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"__rpc.version","id":4}'
 
-# Response: {"jsonrpc":"2.0","result":{"toolkit":"rpc-express-toolkit","version":"4.2.0","nodeVersion":"v18.0.0"},"id":4}
+# Response: {"jsonrpc":"2.0","result":{"toolkit":"rpc-express-toolkit","version":"4.3.3","nodeVersion":"v18.0.0"},"id":4}
 
 curl -X POST http://localhost:1880/rpc \
   -H "Content-Type: application/json" \
