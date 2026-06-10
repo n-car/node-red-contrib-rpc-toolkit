@@ -13,7 +13,7 @@ module.exports = function(RED) {
         
         // Configuration
         const endpoint = config.endpoint || '/rpc';
-        const safeEnabled = config.safeEnabled || false;
+        const safeEnabled = true; // Server always enforces safe serialization
         const corsEnabled = config.corsEnabled || false;
         
         // Store endpoint for info display
@@ -34,7 +34,7 @@ module.exports = function(RED) {
             app.use((req, res, next) => {
                 res.header('Access-Control-Allow-Origin', '*');
                 res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
-                res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-RPC-Safe');
+                res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-RPC-Safe-Enabled');
                 
                 if (req.method === 'OPTIONS') {
                     return res.sendStatus(200);
@@ -48,6 +48,7 @@ module.exports = function(RED) {
             safeEnabled: safeEnabled,
             enableBatch: true,
             enableLogging: true,
+            enableIntrospection: true,  // Enable __rpc.* methods
             endpoint: '/'  // Use root path since we mount the app at the endpoint
         };
         

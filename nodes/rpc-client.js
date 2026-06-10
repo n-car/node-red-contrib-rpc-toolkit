@@ -16,7 +16,7 @@ module.exports = function(RED) {
         const serverUrl = config.serverUrl;
         const method = config.method;
         const timeout = config.timeout || 5000;
-        const safeEnabled = config.safeEnabled || false;
+        const safeEnabled = config.safeEnabled !== false; // default to true unless explicitly disabled
         const authToken = config.authToken || '';
         
         // Create RPC client
@@ -27,7 +27,9 @@ module.exports = function(RED) {
         
         const headers = {};
         if (authToken) {
-            headers['Authorization'] = `Bearer ${authToken}`;
+            headers['Authorization'] = authToken.startsWith('Bearer ')
+                ? authToken
+                : `Bearer ${authToken}`;
         }
         
         node.client = new RpcClient(serverUrl, headers, clientOptions);
@@ -86,4 +88,38 @@ module.exports = function(RED) {
     }
     
     RED.nodes.registerType("rpc-client", RpcClientNode);
+
+    // Admin endpoint used by editor UI to load method list via RpcClient
+    RED.httpAdmin.post('/rpc-client/introspect', async function(req, res) {
+        const { serverUrl, authToken, safeEnabled } = req.body || {};
+
+        if (!serverUrl) {
+            return res.status(400).json({ success: false, error: { message: 'Missing serverUrl' } });
+        }
+
+        try {
+            const headers = {};
+            if (authToken) {
+                headers['Authorization'] = authToken.startsWith('Bearer ')
+                    ? authToken
+                    : `Bearer ${authToken}`;
+            }
+
+            const client = new RpcClient(serverUrl, headers, {
+                timeout: 5000,
+                safeEnabled: safeEnabled !== false
+            });
+
+            const methods = await client.call('__rpc.listMethods', {});
+            res.json({ success: true, methods });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                error: {
+                    message: error.message,
+                    code: error.code || -32603
+                }
+            });
+        }
+    });
 };

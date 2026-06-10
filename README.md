@@ -127,7 +127,7 @@ Creates an HTTP server that handles JSON-RPC 2.0 requests.
 **Properties:**
 - **Port** - Server port (default: `1880`)
 - **Endpoint** - URL path (default: `/rpc`)
-- **Safe Mode** - Enable type-safe serialization
+- **Safe Mode** - Always enabled for Node-RED servers to guarantee type-safe serialization
 - **CORS** - Enable cross-origin requests
 - **Auth** - Enable authentication
 - **Rate Limit** - Requests per minute
@@ -143,7 +143,7 @@ Calls remote RPC servers.
 - **Method** - RPC method name
 - **Timeout** - Request timeout in ms
 - **Auth Token** - Optional authentication
-- **Safe Mode** - Enable type-safe mode
+- **Safe Mode** - Enabled by default; disable only when calling legacy servers that do not support RPC Toolkit safe serialization
 
 **Input:** `msg.payload` = method parameters
 **Output:** `msg.payload` = result or error
@@ -234,7 +234,7 @@ curl -X POST http://localhost:1880/rpc \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"__rpc.capabilities","id":5}'
 
-# Response: {"jsonrpc":"2.0","result":{"batch":true,"introspection":true,"validation":true,"safeMode":false,"methodCount":5},"id":5}
+# Response: {"jsonrpc":"2.0","result":{"batch":true,"introspection":true,"validation":true,"safeMode":true,"methodCount":5},"id":5}
 ```
 
 **Built-in introspection methods:**
@@ -442,7 +442,7 @@ All introspection methods work seamlessly across platforms!
 {
   "method": "__rpc.capabilities"
 }
-// Result: {"batch":true,"introspection":true,"safeMode":false,"methodCount":5,"maxMethods":8}
+// Result: {"batch":true,"introspection":true,"safeMode":true,"methodCount":5,"maxMethods":8}
 ```
 
 ### Dashboard Integration

@@ -7,7 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No unreleased changes._
+### Changed
+- RPC Server now enforces Safe Mode at all times and no longer exposes a toggle in the editor; CORS headers list `X-RPC-Safe-Enabled` for browser compatibility
+- RPC Client enables Safe Mode by default (can be disabled per-node) and normalizes Bearer tokens when setting the Authorization header
+
+### Fixed
+- The "Load Methods" helper now sends the same Safe Mode and Authorization headers as regular client calls, allowing introspection to succeed on strict servers
 
 ## [2.1.0] - 2025-11-27
 

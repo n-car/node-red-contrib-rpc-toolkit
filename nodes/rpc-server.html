@@ -4,7 +4,6 @@
         defaults: {
             name: { value: "" },
             endpoint: { value: "/rpc", required: true },
-            safeEnabled: { value: false },
             corsEnabled: { value: false }
         },
         label: function() {
@@ -44,9 +43,7 @@
     
     <div class="form-row">
         <label>&nbsp;</label>
-        <input type="checkbox" id="node-config-input-safeEnabled" style="display:inline-block; width:auto; vertical-align:top;">
-        <label for="node-config-input-safeEnabled" style="width:70%">Enable Safe Mode</label>
-        <div class="form-tips">Type-safe serialization with S:, D:, n prefixes</div>
+        <div class="form-tips" style="width:70%">Safe Mode is always enabled to guarantee type-safe serialization (S:, D:, n prefixes).</div>
     </div>
     
     <div class="form-row">
@@ -69,8 +66,8 @@
         <dt>Endpoint <span class="property-type">string</span></dt>
         <dd>The URL path for RPC requests (default: /rpc). The server will be available at http://localhost:1880/rpc</dd>
         
-        <dt>Safe Mode <span class="property-type">boolean</span></dt>
-        <dd>Enable type-safe serialization with prefixes (S: for strings, D: for dates, n suffix for NaN/Infinity)</dd>
+        <dt>Safe Mode <span class="property-type">always on</span></dt>
+        <dd>The server enforces type-safe serialization with prefixes (S: for strings, D: for dates, n suffix for BigInt markers) and cannot be disabled.</dd>
         
         <dt>CORS <span class="property-type">boolean</span></dt>
         <dd>Enable Cross-Origin Resource Sharing for browser access</dd>

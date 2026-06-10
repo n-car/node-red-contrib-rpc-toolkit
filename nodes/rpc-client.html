@@ -7,7 +7,7 @@
             serverUrl: { value: "", required: true },
             method: { value: "", required: true },
             timeout: { value: 5000, validate: RED.validators.number() },
-            safeEnabled: { value: false },
+            safeEnabled: { value: true },
             authToken: { value: "" }
         },
         inputs: 1,
@@ -33,37 +33,44 @@
                 
                 $('#node-input-load-methods').prop('disabled', true).text('Loading...');
                 
-                // Try to call __rpc.listMethods
-                fetch(serverUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        jsonrpc: '2.0',
-                        method: '__rpc.listMethods',
-                        params: {},
-                        id: Date.now()
+                const authToken = $('#node-input-authToken').val();
+                const safeEnabled = $('#node-input-safeEnabled').is(':checked');
+                
+                $.ajax({
+                    url: 'rpc-client/introspect',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        serverUrl: serverUrl,
+                        authToken: authToken,
+                        safeEnabled: safeEnabled
                     })
                 })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.result && Array.isArray(data.result)) {
+                .done(function(response) {
+                    if (response.success && Array.isArray(response.methods)) {
                         const select = $('#node-input-method-select');
                         select.empty();
                         select.append('<option value="">-- Select a method --</option>');
-                        data.result.forEach(method => {
+                        response.methods.forEach(method => {
                             select.append(`<option value="${method}">${method}</option>`);
                         });
                         select.show();
                         $('#node-input-method').hide();
-                        RED.notify(`Loaded ${data.result.length} methods`, 'success');
+                        RED.notify(`Loaded ${response.methods.length} methods`, 'success');
                     } else {
                         RED.notify('Server does not support introspection or returned invalid data', 'warning');
                     }
                 })
-                .catch(err => {
-                    RED.notify('Failed to load methods: ' + err.message, 'error');
+                .fail(function(xhr) {
+                    const error = xhr.responseJSON?.error;
+                    if (error) {
+                        RED.notify(`Server error: ${error.message} (code: ${error.code || '-'})`, 'error');
+                        console.error('RPC Error:', error);
+                    } else {
+                        RED.notify('Failed to load methods: ' + xhr.statusText, 'error');
+                    }
                 })
-                .finally(() => {
+                .always(function() {
                     $('#node-input-load-methods').prop('disabled', false).text('Load Methods');
                 });
             });
@@ -146,6 +153,9 @@
         
         <dt>Timeout <span class="property-type">number</span></dt>
         <dd>Request timeout in milliseconds (default: 5000)</dd>
+        
+        <dt>Safe Mode <span class="property-type">boolean</span></dt>
+        <dd>Enabled by default to ensure compatibility with RPC Toolkit servers. Disable only when calling legacy endpoints that do not support safe serialization headers.</dd>
     </dl>
     
     <h3>Inputs</h3>
