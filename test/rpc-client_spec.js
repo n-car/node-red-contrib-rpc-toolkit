@@ -1,51 +1,65 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
 const helper = require('node-red-node-test-helper');
 const rpcClientNode = require('../nodes/rpc-client.js');
 
 helper.init(require.resolve('node-red'));
 
-describe('rpc-client Node', function() {
-    beforeEach(function(done) {
-        helper.startServer(done);
+function startServer() {
+    return new Promise((resolve, reject) => {
+        helper.startServer((error) => error ? reject(error) : resolve());
     });
+}
 
-    afterEach(function(done) {
+function stopServer() {
+    return new Promise((resolve, reject) => {
         helper.unload();
-        helper.stopServer(done);
+        helper.stopServer((error) => error ? reject(error) : resolve());
     });
+}
 
-    it('should be loaded', function(done) {
-        const flow = [
-            { 
-                id: 'n1', 
-                type: 'rpc-client', 
-                name: 'test client',
-                serverUrl: 'http://localhost:3000/rpc',
-                method: 'testMethod',
-                timeout: 5000
-            }
-        ];
-        helper.load(rpcClientNode, flow, function() {
-            const n1 = helper.getNode('n1');
-            n1.should.have.property('name', 'test client');
-            done();
-        });
+function load(nodes, flow) {
+    return new Promise((resolve, reject) => {
+        helper.load(nodes, flow, (error) => error ? reject(error) : resolve());
     });
+}
 
-    it('should create RPC client', function(done) {
-        const flow = [
-            { 
-                id: 'n1', 
-                type: 'rpc-client',
-                serverUrl: 'http://localhost:3000/rpc',
-                method: 'testMethod',
-                timeout: 5000,
-                safeEnabled: false
-            }
-        ];
-        helper.load(rpcClientNode, flow, function() {
-            const n1 = helper.getNode('n1');
-            n1.should.have.property('client');
-            done();
-        });
-    });
+test('rpc-client node should be loaded', async (t) => {
+    await startServer();
+    t.after(stopServer);
+
+    const flow = [
+        {
+            id: 'n1',
+            type: 'rpc-client',
+            name: 'test client',
+            serverUrl: 'http://localhost:3000/rpc',
+            method: 'testMethod',
+            timeout: 5000
+        }
+    ];
+    await load(rpcClientNode, flow);
+
+    const n1 = helper.getNode('n1');
+    assert.equal(n1.name, 'test client');
+});
+
+test('rpc-client node should create RPC client', async (t) => {
+    await startServer();
+    t.after(stopServer);
+
+    const flow = [
+        {
+            id: 'n1',
+            type: 'rpc-client',
+            serverUrl: 'http://localhost:3000/rpc',
+            method: 'testMethod',
+            timeout: 5000,
+            safeEnabled: false
+        }
+    ];
+    await load(rpcClientNode, flow);
+
+    const n1 = helper.getNode('n1');
+    assert.ok(n1.client);
 });

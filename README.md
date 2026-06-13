@@ -4,619 +4,262 @@
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node-RED](https://img.shields.io/badge/Node--RED-%3E%3D3.0.0-red.svg)](https://nodered.org/)
 
-JSON-RPC 2.0 client and server nodes for Node-RED. Build powerful automation flows with RPC communication to Express, PHP, .NET, Arduino, and ESP32 devices.
+JSON-RPC 2.0 client and server nodes for Node-RED, with optional RPC Toolkit Safe Mode interoperability.
 
-![Node-RED RPC Toolkit](https://raw.githubusercontent.com/n-car/node-red-contrib-rpc-toolkit/main/docs/images/banner.png)
+The package is designed to connect Node-RED flows with RPC Toolkit endpoints such as `rpc-express-toolkit`, `rpc-php-toolkit`, `rpc-dotnet-toolkit`, and `rpc-arduino-toolkit`.
 
-## 🎯 Features
+## Status
 
-### Core Nodes
-- **RPC Server** - Expose Node-RED flows as RPC methods via HTTP
-- **RPC Client** - Call remote RPC servers (Express, PHP, .NET, Arduino)
-- **RPC Method** - Register method handlers in flows
-- **RPC Request** - Parse incoming RPC requests
-- **RPC Response** - Send RPC responses
+- Published on npm as `node-red-contrib-rpc-toolkit`.
+- Requires Node.js 18 or newer.
+- Tested locally with Node-RED 5.0.0 in unit tests and Node-RED 4.1.0 in the Docker interoperability harness.
+- npm audit is clean for runtime and development dependencies.
+- Node-RED Flow Library visibility may lag behind npm publication. If the package is not visible in Palette Manager yet, install it from npm in the Node-RED user directory.
 
-### Advanced Features
-- ✅ **JSON-RPC 2.0 Compliance** - Full specification support
-- ✅ **Introspection API** - Discover methods with `__rpc.*` (listMethods, describe, version, capabilities)
-- ✅ **Cross-Platform** - Works with entire RPC Toolkit ecosystem
-- ✅ **Safe Mode** - Type-safe serialization with prefixes
-- ✅ **Batch Requests** - Process multiple requests efficiently
-- ✅ **Schema Support** - JSON Schema validation and exposition
-- ✅ **Error Handling** - Structured error responses
-- ✅ **Authentication** - JWT and custom auth support
-- ✅ **CORS** - Cross-origin resource sharing
-- ✅ **Rate Limiting** - Protect your endpoints
-- ✅ **Logging** - Built-in debug and logging
+## Nodes
 
-## 📦 Installation
+- `rpc-server` - configuration node that mounts a JSON-RPC HTTP endpoint on the Node-RED HTTP server.
+- `rpc-method` - registers a flow-backed JSON-RPC method on an `rpc-server`.
+- `rpc-response` - completes a pending request started by an `rpc-method`.
+- `rpc-client` - calls a remote JSON-RPC HTTP endpoint.
+- `rpc-request` - parses an incoming JSON-RPC request from an existing HTTP flow.
 
-### Via Node-RED Palette Manager
-1. Open Node-RED
-2. Go to **Menu → Manage Palette**
-3. Click **Install** tab
-4. Search for `node-red-contrib-rpc-toolkit`
-5. Click **Install**
+## Implemented Features
 
-### Via npm
+- JSON-RPC 2.0 calls, errors, notifications, and batch requests.
+- Flow-backed method registration.
+- Built-in introspection through `__rpc.listMethods`, `__rpc.describe`, `__rpc.describeAll`, `__rpc.version`, and `__rpc.capabilities`.
+- Per-method JSON Schema validation when a method schema is configured.
+- Optional RPC Toolkit Safe Mode over HTTP.
+- Strict Safe Mode header handling on the server when Safe Mode is enabled.
+- CORS support on the server node.
+- Optional Authorization header passthrough on the client node.
+- Client editor helper for loading remote methods through introspection.
+
+Not currently implemented by this package:
+
+- Server-side JWT authentication middleware.
+- Server-side rate limiting configuration.
+- WebSocket transport.
+- A dedicated visual batch node. Batch requests are supported by the JSON-RPC endpoint, but not exposed as a separate Node-RED node.
+
+## Installation
+
+### Node-RED User Directory
+
 ```bash
 cd ~/.node-red
 npm install node-red-contrib-rpc-toolkit
 ```
 
-### Via command line
+Restart Node-RED after installing from the command line.
+
+### Palette Manager
+
+When the package is visible in the Node-RED Flow Library:
+
+1. Open Node-RED.
+2. Go to **Menu > Manage palette**.
+3. Open the **Install** tab.
+4. Search for `node-red-contrib-rpc-toolkit`.
+5. Click **Install**.
+
+## Quick Start
+
+Create a simple RPC server method:
+
+```text
+[RPC Method: "ping"] -> [Function: return "pong"] -> [RPC Response]
+```
+
+Configure an `rpc-server` config node with endpoint `/rpc`, then configure the `rpc-method` node to use that server and method name `ping`. Safe Mode is enabled by default.
+
+Function node:
+
+```javascript
+msg.payload = 'pong';
+return msg;
+```
+
+Raw HTTP test:
+
 ```bash
-npm install -g node-red-contrib-rpc-toolkit
+curl -X POST http://localhost:1880/rpc \
+  -H "Content-Type: application/json" \
+  -H "X-RPC-Safe-Enabled: true" \
+  -d '{"jsonrpc":"2.0","method":"ping","id":1}'
 ```
 
-Then restart Node-RED.
+Raw Safe Mode response:
 
-## 🚀 Quick Start
-
-### Example 1: Simple RPC Server
-
-Create a flow that exposes a `ping` method:
-
-```
-[RPC Server] → [RPC Method: "ping"] → [Function: return "pong"] → [RPC Response]
+```json
+{"jsonrpc":"2.0","id":1,"result":"S:pong"}
 ```
 
-**Configuration:**
-1. Add **RPC Server** node, set port `1880`, endpoint `/rpc`
-2. Add **RPC Method** node, set name `ping`
-3. Add **Function** node with: `msg.payload = "pong"; return msg;`
-4. Connect to **RPC Response** node
+The `S:` prefix is expected for raw HTTP clients when Safe Mode is enabled. RPC Toolkit clients decode Safe Mode values automatically.
 
-**Test:**
+If Safe Mode is disabled on the `rpc-server` config node, the same request can be sent without the Safe Mode header and the response is standard JSON-RPC:
+
 ```bash
 curl -X POST http://localhost:1880/rpc \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"ping","id":1}'
 ```
 
-**Response:**
 ```json
-{"jsonrpc":"2.0","result":"pong","id":1}
+{"jsonrpc":"2.0","id":1,"result":"pong"}
 ```
 
-### Call Arduino/ESP32
+## Node Details
 
-```
-[Inject] → [RPC Client] → [Debug]
-```
+### RPC Server
 
-**RPC Client Configuration:**
-- Server URL: `http://192.168.1.100:8080`
-- Method: `readTemp`
-- Timeout: `5000` ms
+Creates a JSON-RPC endpoint under the Node-RED HTTP server.
 
-**Output:** `msg.payload = 25.5`
+Configuration:
 
-**Discover Arduino methods:**
+- `Endpoint` - HTTP path, for example `/rpc`.
+- `CORS` - enables CORS headers, including `X-RPC-Safe-Enabled`.
+- `Safe Mode` - enabled by default for RPC Toolkit interoperability. Disable it to expose a standard JSON-RPC 2.0 endpoint.
+
+When Safe Mode is enabled, the server uses strict Safe Mode header negotiation. Requests without `X-RPC-Safe-Enabled` are rejected with JSON-RPC error `-32600`. When Safe Mode is disabled, the endpoint does not require the header and returns raw JSON values without `S:` or `D:` prefixes.
+
+### RPC Method
+
+Registers a method on an `rpc-server`.
+
+Configuration:
+
+- `Server` - target `rpc-server` config node.
+- `Method Name` - JSON-RPC method name.
+- `Description` - optional introspection text.
+- `Expose Schema` - makes schema metadata visible via `__rpc.describe`.
+- `Validate Schema` - validates params before invoking the flow.
+- `Schema` - JSON Schema generated by the editor UI or provided manually.
+
+The node sends incoming method params on output 1. The flow must keep `msg.rpc` intact and pass the final result to an `rpc-response` node.
+
+### RPC Response
+
+Completes a pending request created by an `rpc-method`.
+
+Input:
+
+- `msg.payload` - successful result.
+- `msg.error` - optional JSON-RPC error object.
+- `msg.rpc.id` and `msg.rpc.methodNodeId` - routing metadata from `rpc-method`.
+
+Example custom error:
 
 ```javascript
-// Use RPC Client node to call introspection
-// Method: __rpc.listMethods
-// Output: ["readTemp", "setLED", "readSensors", ...]
-
-// Get method details
-// Method: __rpc.describe
-// Params: {"method": "readTemp"}
-// Output: {"name":"readTemp","description":"Read temperature sensor","exposeSchema":true}
-```
-
-### Example 3: IoT Sensor Hub
-
-```
-[RPC Method: "getAllSensors"]
-  ↓
-[MQTT In] → [Parse Sensors] → [Format Response]
-  ↓
-[RPC Response]
-```
-
-Register method that aggregates data from multiple sensors via MQTT.
-
-## 📚 Node Documentation
-
-### RPC Server Node
-
-Creates an HTTP server that handles JSON-RPC 2.0 requests.
-
-**Properties:**
-- **Port** - Server port (default: `1880`)
-- **Endpoint** - URL path (default: `/rpc`)
-- **Safe Mode** - Always enabled for Node-RED servers to guarantee type-safe serialization
-- **CORS** - Enable cross-origin requests
-- **Auth** - Enable authentication
-- **Rate Limit** - Requests per minute
-
-**Output:** Emits events for monitoring
-
-### RPC Client Node
-
-Calls remote RPC servers.
-
-**Properties:**
-- **Server URL** - Target server (e.g., `http://localhost:3000/rpc`)
-- **Method** - RPC method name
-- **Timeout** - Request timeout in ms
-- **Auth Token** - Optional authentication
-- **Safe Mode** - Enabled by default; disable only when calling legacy servers that do not support RPC Toolkit safe serialization
-
-**Input:** `msg.payload` = method parameters
-**Output:** `msg.payload` = result or error
-
-### RPC Method Node
-
-Registers a method handler in the RPC server.
-
-**Properties:**
-- **Server** - Link to RPC Server node
-- **Method Name** - Name of the method (e.g., `getStatus`)
-- **Description** - Human-readable description of the method (optional)
-- **Expose Schema** - Allow introspection via `__rpc.describe` (checkbox)
-- **Validate Schema** - Enable JSON Schema validation (checkbox)
-- **Schema** - Optional JSON Schema for validation
-
-**Outputs:**
-- **Output 1** - Emits RPC parameters for processing (includes `msg.rpc.id` / `methodNodeId`)
-- **Output 2** - Emits immediate errors raised by the method node
-
-**Response Handling:** Send the final result (or error) to an **RPC Response** node to reply to the caller. Keep `msg.rpc` intact so the pending request can be matched.
-
-**Introspection Support:**
-When "Expose Schema" is enabled, clients can discover this method via:
-- `__rpc.listMethods` - Lists all method names
-- `__rpc.describe` - Gets method description and schema info
-- `__rpc.describeAll` - Gets all methods with public schemas
-
-### RPC Request Node
-
-Parses incoming RPC request from HTTP.
-
-**Output:**
-- `msg.payload` - Method parameters
-- `msg.rpc.method` - Method name
-- `msg.rpc.id` - Request ID
-- `msg.rpc.jsonrpc` - Protocol version
-
-### RPC Response Node
-
-Sends RPC response back to client.
-
-**Input:**
-- `msg.payload` - Result to return
-- `msg.rpc.id` - Request ID (from RPC Request)
-- `msg.rpc.methodNodeId` - Method node reference (added automatically)
-- `msg.error` - Error object (if error occurred)
-
-**Notes:**
-- Every RPC Method flow must end with an **RPC Response** node (or equivalent) to send the result back.
-- The **RPC Method** node automatically attaches `msg.rpc.methodNodeId` and `msg.rpc.id` so the response can be routed back to the correct pending request.
-- Set `msg.error` to return an RPC error response; otherwise `msg.payload` is used as the successful result.
-
-## 🎨 Example Flows
-
-### Introspection API Discovery
-
-Discover available methods from any RPC client:
-
-```bash
-# List all available methods
-curl -X POST http://localhost:1880/rpc \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","method":"__rpc.listMethods","id":1}'
-
-# Response: {"jsonrpc":"2.0","result":["ping","add","getUser"],"id":1}
-
-# Get method description
-curl -X POST http://localhost:1880/rpc \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","method":"__rpc.describe","params":{"method":"add"},"id":2}'
-
-# Response: {"jsonrpc":"2.0","result":{"name":"add","description":"Add two numbers","exposeSchema":true,"schema":{...}},"id":2}
-
-# Get all public methods with schemas
-curl -X POST http://localhost:1880/rpc \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","method":"__rpc.describeAll","id":3}'
-
-# Get server version and capabilities
-curl -X POST http://localhost:1880/rpc \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","method":"__rpc.version","id":4}'
-
-# Response: {"jsonrpc":"2.0","result":{"toolkit":"rpc-express-toolkit","version":"4.3.3","nodeVersion":"v18.0.0"},"id":4}
-
-curl -X POST http://localhost:1880/rpc \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","method":"__rpc.capabilities","id":5}'
-
-# Response: {"jsonrpc":"2.0","result":{"batch":true,"introspection":true,"validation":true,"safeMode":true,"methodCount":5},"id":5}
-```
-
-**Built-in introspection methods:**
-- `__rpc.listMethods` - Returns array of all method names (excludes `__rpc.*` methods)
-- `__rpc.describe` - Returns `{name, description, exposeSchema, schema}` for a specific method
-- `__rpc.describeAll` - Returns array of all methods with `exposeSchema: true`
-- `__rpc.version` - Returns toolkit version and Node.js version info
-- `__rpc.capabilities` - Returns server features (batch, introspection, validation, etc.)
-
-**Register methods with schema exposition:**
-
-```
-[RPC Method]
-  Method Name: "add"
-  Description: "Add two numbers"
-  ☑ Expose Schema
-  ☑ Validate Schema
-  Properties:
-    - a: number (required)
-    - b: number (required)
-```
-
-### Home Automation Hub
-
-Control smart devices via RPC:
-
-```json
-[
-  {
-    "id": "server1",
-    "type": "rpc-server",
-    "name": "Home Hub",
-    "port": 1880,
-    "endpoint": "/rpc",
-    "cors": true
-  },
-  {
-    "id": "method1",
-    "type": "rpc-method",
-    "name": "setLight",
-    "server": "server1",
-    "wires": [["mqtt1"]]
-  },
-  {
-    "id": "mqtt1",
-    "type": "mqtt out",
-    "topic": "home/light/set",
-    "wires": [["response1"]]
-  },
-  {
-    "id": "response1",
-    "type": "rpc-response"
+msg.error = {
+  code: -32042,
+  message: 'Domain failure',
+  data: {
+    reason: 'intentional-test-error'
   }
-]
-```
-
-**Usage:**
-```javascript
-// From browser or mobile app
-const client = new RpcClient('http://home-hub:1880/rpc');
-await client.call('setLight', { room: 'bedroom', state: true });
-```
-
-### Multi-Device Orchestration
-
-Call multiple devices in parallel:
-
-```
-[Inject]
-  ↓
-[RPC Batch]
-  ├→ [RPC Client: Arduino 1] → readTemp
-  ├→ [RPC Client: Arduino 2] → readHumidity
-  └→ [RPC Client: ESP32] → readPressure
-  ↓
-[Join] → [Function: aggregate] → [Dashboard]
-```
-
-### Database Query Service
-
-```
-[RPC Method: "getUser"]
-  ↓
-[SQL Query]
-  ↓
-[Transform Data]
-  ↓
-[RPC Response]
-```
-
-### ESP32 Bridge
-
-Forward requests to ESP32 devices:
-
-```
-[RPC Server :1880]
-  ↓
-[RPC Method: "device.*"]
-  ↓
-[Switch: by method]
-  ├→ device.led → [RPC Client: ESP32 :8080]
-  ├→ device.temp → [RPC Client: ESP32 :8080]
-  └→ device.status → [RPC Client: ESP32 :8080]
-  ↓
-[RPC Response]
-```
-
-## 🔧 Configuration Examples
-
-### Enable Authentication
-
-```javascript
-// In RPC Server node settings
-{
-  "auth": {
-    "enabled": true,
-    "secret": "your-jwt-secret",
-    "validateToken": function(token) {
-      // Validate JWT or custom token
-      return isValidToken(token);
-    }
-  }
-}
-```
-
-### Enable Rate Limiting
-
-```javascript
-{
-  "rateLimit": {
-    "enabled": true,
-    "maxRequests": 100,
-    "windowMs": 60000  // 1 minute
-  }
-}
-```
-
-### Custom Error Handling
-
-```javascript
-// In Function node before RPC Response
-if (error) {
-  msg.error = {
-    code: -32000,
-    message: "Custom error message",
-    data: { details: "..." }
-  };
-}
+};
 return msg;
 ```
 
-## 🌐 Cross-Platform Integration
+### RPC Client
 
-All introspection methods work seamlessly across platforms!
+Calls a remote JSON-RPC HTTP endpoint.
 
-### Call PHP Server
+Configuration:
 
-```javascript
-// RPC Client node → PHP backend
-{
-  "url": "http://api.example.com/rpc",
-  "method": "user.create",
-  "params": {
-    "name": "John",
-    "email": "john@example.com"
-  }
-}
+- `Server URL` - full endpoint URL, for example `http://localhost:3000/api`.
+- `Method` - default method name.
+- `Timeout` - request timeout in milliseconds.
+- `Auth Token` - optional token sent as an `Authorization` header.
+- `Safe Mode` - enabled by default.
 
-// Discover PHP methods
-{
-  "method": "__rpc.listMethods"  // Works on PHP server too!
-}
+Input:
+
+- `msg.payload` - method params.
+- `msg.method` - optional method override.
+
+Outputs:
+
+- Output 1: successful result in `msg.payload`.
+- Output 2: error object in `msg.error`.
+
+### RPC Request
+
+Parses a JSON-RPC request from an existing HTTP flow. Use this only when you are building a custom HTTP flow instead of the `rpc-server` config node.
+
+## Introspection
+
+The server supports:
+
+- `__rpc.listMethods`
+- `__rpc.describe`
+- `__rpc.describeAll`
+- `__rpc.version`
+- `__rpc.capabilities`
+
+Example:
+
+```bash
+curl -X POST http://localhost:1880/rpc \
+  -H "Content-Type: application/json" \
+  -H "X-RPC-Safe-Enabled: true" \
+  -d '{"jsonrpc":"2.0","method":"__rpc.listMethods","id":1}'
 ```
 
-### Call .NET Service
+Raw Safe Mode response:
 
-```javascript
-// RPC Client node → .NET microservice
-{
-  "url": "http://services.example.com:5000/api/rpc",
-  "method": "order.process",
-  "params": {
-    "orderId": 12345
-  }
-}
-
-// Get .NET method schema
-{
-  "method": "__rpc.describe",
-  "params": {"method": "order.process"}
-}
+```json
+{"jsonrpc":"2.0","id":1,"result":["S:ping","S:sum"]}
 ```
 
-### Call Arduino/ESP32
+## Safe Mode Notes
 
-```javascript
-// RPC Client node → ESP32 device
-{
-  "url": "http://192.168.1.100:8080",
-  "method": "readSensors",
-  "params": {}
-}
+Safe Mode is an RPC Toolkit extension for preserving application-level value intent across plain JSON.
 
-// Check ESP32 capabilities
-{
-  "method": "__rpc.capabilities"
-}
-// Result: {"batch":true,"introspection":true,"safeMode":true,"methodCount":5,"maxMethods":8}
-```
+- HTTP requests and responses use `X-RPC-Safe-Enabled` when Safe Mode is enabled.
+- The Node-RED server defaults to Safe Mode enabled and strict header negotiation.
+- Raw HTTP clients must send `X-RPC-Safe-Enabled` when calling a Safe Mode server.
+- Raw HTTP responses from a Safe Mode server contain encoded string values such as `S:hello`.
+- Disable Safe Mode on the server when generic JSON-RPC clients need unprefixed JSON strings.
+- RPC Toolkit clients decode these values automatically.
+- Date and BigInt marker handling follows `rpc-express-toolkit` behavior.
 
-### Dashboard Integration
+## Example Flow
 
-Use with **node-red-dashboard**:
+See [examples/basic-sum.json](examples/basic-sum.json) for a minimal server flow with:
 
-```
-[UI Button: "Read Temp"]
-  ↓
-[RPC Client: ESP32]
-  ↓
-[UI Chart: Temperature]
-```
+- `ping`
+- `sum`
+- schema exposition
+- schema validation
+- `rpc-response`
 
-## 📊 Monitoring & Debugging
-
-### Enable Logging
-
-Set log level in RPC Server node:
-- **Error** - Only errors
-- **Warn** - Warnings and errors
-- **Info** - General information
-- **Debug** - Detailed debugging
-
-### View RPC Traffic
-
-Connect **Debug** nodes to RPC Server output:
-
-```
-[RPC Server]
-  ↓ (events)
-[Debug: "RPC Traffic"]
-```
-
-Shows all incoming requests and responses.
-
-### Metrics
-
-RPC Server emits metrics:
-- `msg.rpc.metrics.requestCount`
-- `msg.rpc.metrics.errorCount`
-- `msg.rpc.metrics.avgResponseTime`
-
-## 🔗 Compatible Projects
-
-This toolkit works seamlessly with:
-- ✅ **[rpc-express-toolkit](https://github.com/n-car/rpc-express-toolkit)** - Node.js/Express
-- ✅ **[rpc-php-toolkit](https://github.com/n-car/rpc-php-toolkit)** - PHP
-- ✅ **[rpc-dotnet-toolkit](https://github.com/n-car/rpc-dotnet-toolkit)** - .NET
-- ✅ **[rpc-arduino-toolkit](https://github.com/n-car/rpc-arduino-toolkit)** - Arduino/ESP32
-
-## 🎯 Use Cases
-
-### IoT & Home Automation
-- Smart home control hub
-- Sensor data aggregation
-- Device orchestration
-- Real-time monitoring
-
-### Microservices
-- Service orchestration
-- API gateway
-- Event-driven workflows
-- Data transformation
-
-### Industrial Automation
-- PLC communication
-- SCADA integration
-- Equipment monitoring
-- Process control
-
-### Prototyping
-- Rapid API development
-- Mock servers
-- Testing tools
-- Demo systems
-
-## 📖 API Reference
-
-### Safe Mode
-
-Enable type-safe serialization:
-
-**Server:**
-```javascript
-{
-  "safeMode": true
-}
-```
-
-**Client:**
-```javascript
-{
-  "safeMode": true
-}
-```
-
-**Behavior:**
-- Strings: `"hello"` → `"S:hello"`
-- Dates: ISO string → `"D:2025-11-26T10:30:00Z"`
-- BigInt: `9007199254740992` → `"9007199254740992n"`
-
-### Batch Requests
-
-Send multiple requests at once:
-
-```javascript
-// msg.payload
-[
-  {"method": "readTemp", "id": 1},
-  {"method": "readHumidity", "id": 2},
-  {"method": "readPressure", "id": 3}
-]
-```
-
-### Notifications
-
-Fire-and-forget (no response):
-
-```javascript
-// RPC Client with no response expected
-{
-  "method": "log.event",
-  "params": {"level": "info", "msg": "User login"},
-  "notification": true  // No ID, no response
-}
-```
-
-## 🛠️ Development
-
-### Clone Repository
+## Local Development
 
 ```bash
 git clone https://github.com/n-car/node-red-contrib-rpc-toolkit.git
 cd node-red-contrib-rpc-toolkit
 npm install
-```
-
-### Link for Development
-
-```bash
-npm link
-cd ~/.node-red
-npm link node-red-contrib-rpc-toolkit
-```
-
-### Run Tests
-
-```bash
 npm test
 ```
 
-## 🔗 Related Projects
+Useful checks:
+
+```bash
+npm run audit:runtime
+npm run pack:check
+```
+
+## Related Projects
 
 - [rpc-express-toolkit](https://github.com/n-car/rpc-express-toolkit) - Node.js/Express implementation
 - [rpc-php-toolkit](https://github.com/n-car/rpc-php-toolkit) - PHP implementation
 - [rpc-dotnet-toolkit](https://github.com/n-car/rpc-dotnet-toolkit) - .NET implementation
 - [rpc-arduino-toolkit](https://github.com/n-car/rpc-arduino-toolkit) - Arduino/ESP32 implementation
-- [rpc-java-toolkit](https://github.com/n-car/rpc-java-toolkit) - Java & Android implementation
+- [rpc-java-toolkit](https://github.com/n-car/rpc-java-toolkit) - Java implementation
+- [rpc-python-toolkit](https://github.com/n-car/rpc-python-toolkit) - Python implementation
 
-## 🤝 Contributing
+## License
 
-Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Built on [rpc-express-toolkit](https://github.com/n-car/rpc-express-toolkit)
-- Compatible with the entire RPC Toolkit ecosystem
-- Inspired by the Node-RED community
-
----
-
-**node-red-contrib-rpc-toolkit** - Bring JSON-RPC 2.0 to your Node-RED flows.
+MIT. See [LICENSE](LICENSE).

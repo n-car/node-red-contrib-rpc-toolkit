@@ -7,17 +7,26 @@ const express = require('express');
 const { RpcEndpoint } = require('rpc-express-toolkit');
 
 module.exports = function(RED) {
+    function parseBoolean(value, defaultValue) {
+        if (value === undefined || value === null || value === '') {
+            return defaultValue;
+        }
+        return value !== false && value !== 'false';
+    }
+
     function RpcServerNode(config) {
         RED.nodes.createNode(this, config);
         const node = this;
-        
+
         // Configuration
         const endpoint = config.endpoint || '/rpc';
-        const safeEnabled = true; // Server always enforces safe serialization
-        const corsEnabled = config.corsEnabled || false;
-        
+        const safeEnabled = parseBoolean(config.safeEnabled, true);
+        const corsEnabled = parseBoolean(config.corsEnabled, false);
+
         // Store endpoint for info display
         node.endpoint = endpoint;
+        node.safeEnabled = safeEnabled;
+        node.corsEnabled = corsEnabled;
         
         // Verify HTTP server is available
         if (!RED.httpNode) {
@@ -49,10 +58,19 @@ module.exports = function(RED) {
             enableBatch: true,
             enableLogging: true,
             enableIntrospection: true,  // Enable __rpc.* methods
+            validation: {},
             endpoint: '/'  // Use root path since we mount the app at the endpoint
         };
-        
+
         node.rpc = new RpcEndpoint(app, {}, rpcOptions);
+        const capabilitiesMethod = node.rpc.getMethod('__rpc.capabilities');
+        if (capabilitiesMethod && typeof capabilitiesMethod === 'object' && typeof capabilitiesMethod.handler === 'function') {
+            const baseCapabilitiesHandler = capabilitiesMethod.handler;
+            capabilitiesMethod.handler = async (...args) => ({
+                ...(await baseCapabilitiesHandler(...args)),
+                cors: corsEnabled
+            });
+        }
         
         // Initialize tracking
         node.pendingRequests = new Map();
@@ -99,6 +117,8 @@ module.exports = function(RED) {
             res.json({
                 active: true,
                 endpoint: node.endpoint,
+                safeEnabled: node.safeEnabled,
+                corsEnabled: node.corsEnabled,
                 methodCount: node.registeredMethods ? node.registeredMethods.length : 0,
                 methods: node.registeredMethods || []
             });

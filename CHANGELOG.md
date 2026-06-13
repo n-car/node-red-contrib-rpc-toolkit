@@ -7,12 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.2] - 2026-06-13
+
 ### Changed
-- RPC Server now enforces Safe Mode at all times and no longer exposes a toggle in the editor; CORS headers list `X-RPC-Safe-Enabled` for browser compatibility
+- Updated README to describe only currently implemented Node-RED node behavior.
+- Replaced personal author email metadata with the public GitHub profile URL.
+- Updated runtime dependency constraint to `rpc-express-toolkit@^4.3.5`.
+- Switched tests from Mocha to the built-in Node.js test runner.
+- Added an npm package `files` allowlist to keep published package contents focused.
+- Added GitHub Actions CI for tests, runtime audit, and package content checks.
+- Updated development dependencies to current Node-RED test stack.
+- RPC Server now defaults to Safe Mode but exposes a server option to disable it for standard JSON-RPC 2.0 endpoints; CORS headers list `X-RPC-Safe-Enabled` for browser compatibility
 - RPC Client enables Safe Mode by default (can be disabled per-node) and normalizes Bearer tokens when setting the Authorization header
 
 ### Fixed
 - The "Load Methods" helper now sends the same Safe Mode and Authorization headers as regular client calls, allowing introspection to succeed on strict servers
+- `__rpc.capabilities` now reports validation support because schema validation is enabled for methods that declare schemas.
 
 ## [2.1.0] - 2025-11-27
 
@@ -103,8 +113,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Visual flow-based RPC method registration
 - Async/await support for handlers
 - Error handling with standard error codes
-- Authentication support (JWT ready)
-- Rate limiting configuration
+- Client-side Authorization header support
+- Server-side authentication and rate limiting left for future middleware work
 - Request/response monitoring
 - Timeout handling
 - Debug and logging capabilities

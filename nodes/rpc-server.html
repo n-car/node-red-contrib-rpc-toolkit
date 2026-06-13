@@ -4,6 +4,7 @@
         defaults: {
             name: { value: "" },
             endpoint: { value: "/rpc", required: true },
+            safeEnabled: { value: true },
             corsEnabled: { value: false }
         },
         label: function() {
@@ -19,6 +20,8 @@
                         '<strong>Server Status</strong><br>' +
                         '<span style="color: green;">● Active</span><br>' +
                         '<strong>Endpoint:</strong> ' + data.endpoint + '<br>' +
+                        '<strong>Safe Mode:</strong> ' + (data.safeEnabled ? 'enabled' : 'disabled') + '<br>' +
+                        '<strong>CORS:</strong> ' + (data.corsEnabled ? 'enabled' : 'disabled') + '<br>' +
                         '<strong>Registered Methods:</strong> ' + data.methodCount + '<br>' +
                         (data.methods.length > 0 ? '<small>' + data.methods.join(', ') + '</small>' : '<small>(none)</small>') +
                         '</div>';
@@ -43,7 +46,9 @@
     
     <div class="form-row">
         <label>&nbsp;</label>
-        <div class="form-tips" style="width:70%">Safe Mode is always enabled to guarantee type-safe serialization (S:, D:, n prefixes).</div>
+        <input type="checkbox" id="node-config-input-safeEnabled" style="display:inline-block; width:auto; vertical-align:top;">
+        <label for="node-config-input-safeEnabled" style="width:70%">Enable RPC Toolkit Safe Mode</label>
+        <div class="form-tips">Enabled by default for RPC Toolkit interoperability. Disable it for standard JSON-RPC 2.0 clients.</div>
     </div>
     
     <div class="form-row">
@@ -64,10 +69,10 @@
     <h3>Configuration</h3>
     <dl class="message-properties">
         <dt>Endpoint <span class="property-type">string</span></dt>
-        <dd>The URL path for RPC requests (default: /rpc). The server will be available at http://localhost:1880/rpc</dd>
+        <dd>The URL path for RPC requests, for example <code>/rpc</code> or <code>/rpc-standard</code>. The server is mounted on Node-RED's HTTP server at the configured path.</dd>
         
-        <dt>Safe Mode <span class="property-type">always on</span></dt>
-        <dd>The server enforces type-safe serialization with prefixes (S: for strings, D: for dates, n suffix for BigInt markers) and cannot be disabled.</dd>
+        <dt>Safe Mode <span class="property-type">boolean</span></dt>
+        <dd>When enabled, the server uses RPC Toolkit Safe Mode serialization and requires the <code>X-RPC-Safe-Enabled</code> header. When disabled, the endpoint behaves as standard JSON-RPC 2.0 and does not add Safe Mode string/date prefixes.</dd>
         
         <dt>CORS <span class="property-type">boolean</span></dt>
         <dd>Enable Cross-Origin Resource Sharing for browser access</dd>
