@@ -1,0 +1,99 @@
+[
+  {
+    "id": "tab-rpc-client-standard",
+    "type": "tab",
+    "label": "RPC client standard",
+    "disabled": false,
+    "info": "RPC Client call to a standard JSON-RPC endpoint."
+  },
+  {
+    "id": "inject-client-standard-ping",
+    "type": "inject",
+    "z": "tab-rpc-client-standard",
+    "name": "call ping",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "payload": "{}",
+    "payloadType": "json",
+    "x": 180,
+    "y": 120,
+    "wires": [
+      [
+        "rpc-client-standard-ping"
+      ]
+    ]
+  },
+  {
+    "id": "rpc-client-standard-ping",
+    "type": "rpc-client",
+    "z": "tab-rpc-client-standard",
+    "name": "standard ping client",
+    "serverUrl": "http://127.0.0.1:1880/rpc-standard",
+    "method": "ping",
+    "timeout": 5000,
+    "safeEnabled": false,
+    "authToken": "",
+    "x": 430,
+    "y": 120,
+    "wires": [
+      [
+        "debug-client-standard-success"
+      ],
+      [
+        "debug-client-standard-error"
+      ]
+    ]
+  },
+  {
+    "id": "debug-client-standard-success",
+    "type": "debug",
+    "z": "tab-rpc-client-standard",
+    "name": "success payload",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 700,
+    "y": 100,
+    "wires": []
+  },
+  {
+    "id": "debug-client-standard-error",
+    "type": "debug",
+    "z": "tab-rpc-client-standard",
+    "name": "error output",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "error",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 690,
+    "y": 150,
+    "wires": []
+  },
+  {
+    "id": "comment-client-standard",
+    "type": "comment",
+    "z": "tab-rpc-client-standard",
+    "name": "Requires examples/server-standard-basic.json",
+    "info": "Import and deploy server-standard-basic.json first, or point the client to another standard JSON-RPC endpoint.",
+    "x": 300,
+    "y": 60,
+    "wires": []
+  }
+]

@@ -225,15 +225,19 @@ Safe Mode is an RPC Toolkit extension for preserving application-level value int
 - RPC Toolkit clients decode these values automatically.
 - Date and BigInt marker handling follows `rpc-express-toolkit` behavior.
 
-## Example Flow
+## Example Flows
 
-See [examples/basic-sum.json](examples/basic-sum.json) for a minimal server flow with:
+Ready-to-import Node-RED flows are available in [examples](examples/README.md).
 
-- `ping`
-- `sum`
-- schema exposition
-- schema validation
-- `rpc-response`
+The examples are grouped by test type:
+
+- standard JSON-RPC server
+- Safe Mode server
+- validation and custom error responses
+- standard JSON-RPC client
+- Safe Mode client
+- client error output
+- full local server/client loopback
 
 ## Local Development
 

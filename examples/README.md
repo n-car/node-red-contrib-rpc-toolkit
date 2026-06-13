@@ -1,190 +1,123 @@
 # Example Flows
 
-This directory contains example Node-RED flows demonstrating various use cases.
+This directory contains ready-to-import Node-RED flows for focused RPC Toolkit tests.
 
-## Basic Examples
+Import a flow from Node-RED with **Menu > Import**, paste the JSON file contents, then deploy.
 
-### 1. Simple Sum Method
+## Flow Index
 
-A basic example showing how to create a local RPC server with a `sum` method that adds two numbers.
+| File | Purpose | Endpoint | Safe Mode |
+| --- | --- | --- | --- |
+| [basic-sum.json](basic-sum.json) | Minimal `sum` server with schema validation | `/rpc-basic-sum` | disabled |
+| [server-standard-basic.json](server-standard-basic.json) | Standard JSON-RPC server with `ping` and `sum` | `/rpc-standard` | disabled |
+| [server-safe-basic.json](server-safe-basic.json) | RPC Toolkit Safe Mode server with `ping` and `echo` | `/rpc-safe` | enabled |
+| [server-validation-error.json](server-validation-error.json) | Schema validation and custom JSON-RPC error responses | `/rpc-validation` | disabled |
+| [client-standard-call.json](client-standard-call.json) | `rpc-client` calling a standard JSON-RPC endpoint | uses `/rpc-standard` | disabled |
+| [client-safe-call.json](client-safe-call.json) | `rpc-client` calling a Safe Mode endpoint | uses `/rpc-safe` | enabled |
+| [client-error-output.json](client-error-output.json) | `rpc-client` output 2 error routing | uses `/rpc-standard` | disabled |
+| [full-local-loopback.json](full-local-loopback.json) | Self-contained server and client loopback test | `/rpc-loopback` | disabled |
 
-**Flow JSON:**
-```json
-[
-    {
-        "id": "rpc-config-1",
-        "type": "rpc-server",
-        "name": "Local RPC Server",
-        "endpoint": "/rpc",
-        "safeEnabled": false,
-        "corsEnabled": true
-    },
-    {
-        "id": "rpc-method-sum",
-        "type": "rpc-method",
-        "name": "Sum Method",
-        "server": "rpc-config-1",
-        "methodName": "sum",
-        "x": 300,
-        "y": 200,
-        "wires": [["function-add"]]
-    },
-    {
-        "id": "function-add",
-        "type": "function",
-        "name": "Add Numbers",
-        "func": "// Input: msg.payload = { a: 5, b: 3 }\nconst { a, b } = msg.payload;\nmsg.payload = a + b;\nreturn msg;",
-        "x": 500,
-        "y": 200,
-        "wires": [["rpc-response-sum"]]
-    },
-    {
-        "id": "rpc-response-sum",
-        "type": "rpc-response",
-        "name": "Send Result",
-        "x": 700,
-        "y": 200,
-        "wires": []
-    }
-]
-```
+## Server Tests
 
-**How it works:**
-1. RPC Server config node exposes endpoint at `http://localhost:1880/rpc`
-2. RPC Method node registers the `sum` method
-3. When called, it outputs `{ a: 5, b: 3 }` to the function
-4. Function calculates `a + b` and returns result
-5. Result passes through an **RPC Response** node to send the reply back to the caller
+### Standard JSON-RPC
 
-**Test with curl:**
-```bash
-curl -X POST http://localhost:1880/rpc \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","method":"sum","params":{"a":5,"b":3},"id":1}'
-
-# Response:
-# {"jsonrpc":"2.0","result":8,"id":1}
-```
-
-**Test with JavaScript:**
-```javascript
-const response = await fetch('http://localhost:1880/rpc', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-        jsonrpc: '2.0',
-        method: 'sum',
-        params: { a: 10, b: 20 },
-        id: 1
-    })
-});
-const data = await response.json();
-console.log(data.result); // 30
-```
-
-### 2. Simple Ping Server
-
-```json
-[
-    {
-        "id": "server1",
-        "type": "rpc-server",
-        "name": "Ping Server",
-        "endpoint": "/rpc"
-    },
-    {
-        "id": "method1",
-        "type": "rpc-method",
-        "server": "server1",
-        "methodName": "ping"
-    },
-    {
-        "id": "function1",
-        "type": "function",
-        "func": "msg.payload = 'pong';\nreturn msg;",
-        "wires": [["method1"]]
-    }
-]
-```
-
-### 3. Arduino Temperature Reader
-
-### 3. Arduino Temperature Reader
-
-```json
-[
-    {
-        "id": "inject1",
-        "type": "inject",
-        "repeat": "10",
-        "topic": ""
-    },
-    {
-        "id": "client1",
-        "type": "rpc-client",
-        "serverUrl": "http://192.168.1.100:8080",
-        "method": "readTemp",
-        "timeout": 5000
-    },
-    {
-        "id": "debug1",
-        "type": "debug",
-        "name": "Temperature"
-    }
-]
-```
-
-### 4. Multi-Sensor Hub
-
-```json
-[
-    {
-        "id": "server1",
-        "type": "rpc-server",
-        "port": 1880,
-        "endpoint": "/sensors"
-    },
-    {
-        "id": "method1",
-        "type": "rpc-method",
-        "server": "server1",
-        "methodName": "getAllSensors"
-    },
-    {
-        "id": "function1",
-        "type": "function",
-        "func": "msg.payload = {\n  temp: 25.5,\n  humidity: 60,\n  pressure: 1013\n};\nreturn msg;"
-    }
-]
-```
-
-## Advanced Examples
-
-### 4. Database Query Service
-
-Expose database queries via RPC.
-
-### 5. Home Automation Hub
-
-Control smart devices through RPC calls.
-
-### 6. ESP32 Device Bridge
-
-Forward RPC calls to ESP32 devices.
-
-## Import Instructions
-
-1. Copy the JSON flow
-2. In Node-RED, click menu → Import
-3. Paste the JSON
-4. Deploy the flow
-
-## Testing
-
-Use curl or the RPC client to test:
+Import [server-standard-basic.json](server-standard-basic.json), deploy, then run:
 
 ```bash
-curl -X POST http://localhost:1880/rpc \
+curl -X POST http://localhost:1880/rpc-standard \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"ping","id":1}'
 ```
+
+Expected response:
+
+```json
+{"jsonrpc":"2.0","id":1,"result":"pong"}
+```
+
+Test the validated `sum` method:
+
+```bash
+curl -X POST http://localhost:1880/rpc-standard \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"sum","params":{"a":5,"b":7},"id":2}'
+```
+
+Expected response:
+
+```json
+{"jsonrpc":"2.0","id":2,"result":12}
+```
+
+### Safe Mode
+
+Import [server-safe-basic.json](server-safe-basic.json), deploy, then run:
+
+```bash
+curl -X POST http://localhost:1880/rpc-safe \
+  -H "Content-Type: application/json" \
+  -H "X-RPC-Safe-Enabled: true" \
+  -d '{"jsonrpc":"2.0","method":"ping","id":1}'
+```
+
+Expected raw HTTP response:
+
+```json
+{"jsonrpc":"2.0","id":1,"result":"S:pong"}
+```
+
+RPC Toolkit clients decode the `S:` marker automatically.
+
+### Validation And Custom Errors
+
+Import [server-validation-error.json](server-validation-error.json), deploy, then send invalid params:
+
+```bash
+curl -X POST http://localhost:1880/rpc-validation \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"sum","params":{"a":"x","b":7},"id":1}'
+```
+
+Expected: JSON-RPC error `-32602`.
+
+Custom application error:
+
+```bash
+curl -X POST http://localhost:1880/rpc-validation \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"domainError","id":2}'
+```
+
+Expected: JSON-RPC error `-32042` with `error.data`.
+
+## Client Tests
+
+The client-only examples need a server flow deployed first.
+
+- Import [server-standard-basic.json](server-standard-basic.json) before [client-standard-call.json](client-standard-call.json) or [client-error-output.json](client-error-output.json).
+- Import [server-safe-basic.json](server-safe-basic.json) before [client-safe-call.json](client-safe-call.json).
+
+After deploying, click the inject button in the client flow and check the debug sidebar.
+
+Expected results:
+
+- `client-standard-call.json`: output 1 receives `msg.payload = "pong"`.
+- `client-safe-call.json`: output 1 receives decoded `msg.payload = "pong"`.
+- `client-error-output.json`: output 2 receives a JSON-RPC `-32601` error.
+
+## Full Loopback Test
+
+Import [full-local-loopback.json](full-local-loopback.json) when you want a single self-contained flow.
+
+It includes:
+
+- an `rpc-server` config node
+- `ping` and `sum` methods
+- shared `rpc-response`
+- two `rpc-client` calls
+- success and error debug outputs
+
+Deploy the flow, then click the inject buttons. Expected debug results:
+
+- `client call ping`: `pong`
+- `client call sum`: `12`

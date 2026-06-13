@@ -1,0 +1,116 @@
+[
+  {
+    "id": "tab-rpc-standard-server",
+    "type": "tab",
+    "label": "RPC standard server",
+    "disabled": false,
+    "info": "Standard JSON-RPC server with Safe Mode disabled."
+  },
+  {
+    "id": "rpc-standard-server",
+    "type": "rpc-server",
+    "name": "Standard JSON-RPC Server",
+    "endpoint": "/rpc-standard",
+    "safeEnabled": false,
+    "corsEnabled": true
+  },
+  {
+    "id": "rpc-standard-ping",
+    "type": "rpc-method",
+    "z": "tab-rpc-standard-server",
+    "name": "ping",
+    "server": "rpc-standard-server",
+    "methodName": "ping",
+    "description": "Return pong",
+    "exposeSchema": true,
+    "schema": "",
+    "validateSchema": false,
+    "x": 220,
+    "y": 120,
+    "wires": [
+      [
+        "fn-standard-ping"
+      ],
+      []
+    ]
+  },
+  {
+    "id": "fn-standard-ping",
+    "type": "function",
+    "z": "tab-rpc-standard-server",
+    "name": "return pong",
+    "func": "msg.payload = \"pong\";\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 450,
+    "y": 120,
+    "wires": [
+      [
+        "rpc-standard-response"
+      ]
+    ]
+  },
+  {
+    "id": "rpc-standard-sum",
+    "type": "rpc-method",
+    "z": "tab-rpc-standard-server",
+    "name": "sum",
+    "server": "rpc-standard-server",
+    "methodName": "sum",
+    "description": "Add two numbers",
+    "exposeSchema": true,
+    "schema": "{\"type\":\"object\",\"properties\":{\"a\":{\"type\":\"number\"},\"b\":{\"type\":\"number\"}},\"required\":[\"a\",\"b\"]}",
+    "validateSchema": true,
+    "x": 220,
+    "y": 180,
+    "wires": [
+      [
+        "fn-standard-sum"
+      ],
+      []
+    ]
+  },
+  {
+    "id": "fn-standard-sum",
+    "type": "function",
+    "z": "tab-rpc-standard-server",
+    "name": "add numbers",
+    "func": "const params = msg.payload || {};\nmsg.payload = params.a + params.b;\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 450,
+    "y": 180,
+    "wires": [
+      [
+        "rpc-standard-response"
+      ]
+    ]
+  },
+  {
+    "id": "rpc-standard-response",
+    "type": "rpc-response",
+    "z": "tab-rpc-standard-server",
+    "name": "send response",
+    "x": 690,
+    "y": 150,
+    "wires": []
+  },
+  {
+    "id": "comment-standard-server",
+    "type": "comment",
+    "z": "tab-rpc-standard-server",
+    "name": "Standard JSON-RPC endpoint: /rpc-standard",
+    "info": "Safe Mode is disabled. Generic JSON-RPC clients can call this endpoint without X-RPC-Safe-Enabled.",
+    "x": 290,
+    "y": 60,
+    "wires": []
+  }
+]

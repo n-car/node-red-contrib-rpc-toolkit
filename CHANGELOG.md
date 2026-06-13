@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.3] - 2026-06-13
+
+### Added
+- Ready-to-import example flows for standard JSON-RPC server, Safe Mode server, validation errors, client calls, client error output, and local loopback tests.
+
+### Changed
+- Normalized npm repository metadata URL.
+- Updated Express runtime dependency to the latest major release verified by the test suite.
+
 ## [2.2.2] - 2026-06-13
 
 ### Changed

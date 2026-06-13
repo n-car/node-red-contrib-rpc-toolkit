@@ -1,0 +1,116 @@
+[
+  {
+    "id": "tab-rpc-safe-server",
+    "type": "tab",
+    "label": "RPC Safe Mode server",
+    "disabled": false,
+    "info": "RPC Toolkit Safe Mode server."
+  },
+  {
+    "id": "rpc-safe-server",
+    "type": "rpc-server",
+    "name": "Safe Mode RPC Server",
+    "endpoint": "/rpc-safe",
+    "safeEnabled": true,
+    "corsEnabled": true
+  },
+  {
+    "id": "rpc-safe-ping",
+    "type": "rpc-method",
+    "z": "tab-rpc-safe-server",
+    "name": "ping",
+    "server": "rpc-safe-server",
+    "methodName": "ping",
+    "description": "Return pong",
+    "exposeSchema": true,
+    "schema": "",
+    "validateSchema": false,
+    "x": 220,
+    "y": 120,
+    "wires": [
+      [
+        "fn-safe-ping"
+      ],
+      []
+    ]
+  },
+  {
+    "id": "fn-safe-ping",
+    "type": "function",
+    "z": "tab-rpc-safe-server",
+    "name": "return pong",
+    "func": "msg.payload = \"pong\";\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 450,
+    "y": 120,
+    "wires": [
+      [
+        "rpc-safe-response"
+      ]
+    ]
+  },
+  {
+    "id": "rpc-safe-echo",
+    "type": "rpc-method",
+    "z": "tab-rpc-safe-server",
+    "name": "echo",
+    "server": "rpc-safe-server",
+    "methodName": "echo",
+    "description": "Echo params",
+    "exposeSchema": true,
+    "schema": "{\"type\":\"object\"}",
+    "validateSchema": false,
+    "x": 220,
+    "y": 180,
+    "wires": [
+      [
+        "fn-safe-echo"
+      ],
+      []
+    ]
+  },
+  {
+    "id": "fn-safe-echo",
+    "type": "function",
+    "z": "tab-rpc-safe-server",
+    "name": "echo params",
+    "func": "return msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 450,
+    "y": 180,
+    "wires": [
+      [
+        "rpc-safe-response"
+      ]
+    ]
+  },
+  {
+    "id": "rpc-safe-response",
+    "type": "rpc-response",
+    "z": "tab-rpc-safe-server",
+    "name": "send response",
+    "x": 690,
+    "y": 150,
+    "wires": []
+  },
+  {
+    "id": "comment-safe-server",
+    "type": "comment",
+    "z": "tab-rpc-safe-server",
+    "name": "Safe Mode endpoint: /rpc-safe",
+    "info": "Safe Mode is enabled. Raw HTTP clients must send X-RPC-Safe-Enabled: true. RPC Toolkit clients decode S:/D: markers automatically.",
+    "x": 260,
+    "y": 60,
+    "wires": []
+  }
+]

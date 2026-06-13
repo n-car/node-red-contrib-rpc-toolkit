@@ -1,0 +1,242 @@
+[
+  {
+    "id": "tab-rpc-loopback",
+    "type": "tab",
+    "label": "RPC loopback server and client",
+    "disabled": false,
+    "info": "Self-contained local server and client test."
+  },
+  {
+    "id": "rpc-loopback-server",
+    "type": "rpc-server",
+    "name": "Loopback Server",
+    "endpoint": "/rpc-loopback",
+    "safeEnabled": false,
+    "corsEnabled": true
+  },
+  {
+    "id": "rpc-loopback-ping",
+    "type": "rpc-method",
+    "z": "tab-rpc-loopback",
+    "name": "ping",
+    "server": "rpc-loopback-server",
+    "methodName": "ping",
+    "description": "Return pong",
+    "exposeSchema": true,
+    "schema": "",
+    "validateSchema": false,
+    "x": 220,
+    "y": 120,
+    "wires": [
+      [
+        "fn-loopback-ping"
+      ],
+      []
+    ]
+  },
+  {
+    "id": "fn-loopback-ping",
+    "type": "function",
+    "z": "tab-rpc-loopback",
+    "name": "return pong",
+    "func": "msg.payload = \"pong\";\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 450,
+    "y": 120,
+    "wires": [
+      [
+        "rpc-loopback-response"
+      ]
+    ]
+  },
+  {
+    "id": "rpc-loopback-sum",
+    "type": "rpc-method",
+    "z": "tab-rpc-loopback",
+    "name": "sum",
+    "server": "rpc-loopback-server",
+    "methodName": "sum",
+    "description": "Add two numbers",
+    "exposeSchema": true,
+    "schema": "{\"type\":\"object\",\"properties\":{\"a\":{\"type\":\"number\"},\"b\":{\"type\":\"number\"}},\"required\":[\"a\",\"b\"]}",
+    "validateSchema": true,
+    "x": 220,
+    "y": 180,
+    "wires": [
+      [
+        "fn-loopback-sum"
+      ],
+      []
+    ]
+  },
+  {
+    "id": "fn-loopback-sum",
+    "type": "function",
+    "z": "tab-rpc-loopback",
+    "name": "add numbers",
+    "func": "const params = msg.payload || {};\nmsg.payload = params.a + params.b;\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 450,
+    "y": 180,
+    "wires": [
+      [
+        "rpc-loopback-response"
+      ]
+    ]
+  },
+  {
+    "id": "rpc-loopback-response",
+    "type": "rpc-response",
+    "z": "tab-rpc-loopback",
+    "name": "send response",
+    "x": 690,
+    "y": 150,
+    "wires": []
+  },
+  {
+    "id": "inject-loopback-ping",
+    "type": "inject",
+    "z": "tab-rpc-loopback",
+    "name": "client call ping",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "payload": "{}",
+    "payloadType": "json",
+    "x": 190,
+    "y": 300,
+    "wires": [
+      [
+        "rpc-loopback-client-ping"
+      ]
+    ]
+  },
+  {
+    "id": "rpc-loopback-client-ping",
+    "type": "rpc-client",
+    "z": "tab-rpc-loopback",
+    "name": "call ping",
+    "serverUrl": "http://127.0.0.1:1880/rpc-loopback",
+    "method": "ping",
+    "timeout": 5000,
+    "safeEnabled": false,
+    "authToken": "",
+    "x": 420,
+    "y": 300,
+    "wires": [
+      [
+        "debug-loopback-success"
+      ],
+      [
+        "debug-loopback-error"
+      ]
+    ]
+  },
+  {
+    "id": "inject-loopback-sum",
+    "type": "inject",
+    "z": "tab-rpc-loopback",
+    "name": "client call sum",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "payload": "{\"a\":5,\"b\":7}",
+    "payloadType": "json",
+    "x": 190,
+    "y": 360,
+    "wires": [
+      [
+        "rpc-loopback-client-sum"
+      ]
+    ]
+  },
+  {
+    "id": "rpc-loopback-client-sum",
+    "type": "rpc-client",
+    "z": "tab-rpc-loopback",
+    "name": "call sum",
+    "serverUrl": "http://127.0.0.1:1880/rpc-loopback",
+    "method": "sum",
+    "timeout": 5000,
+    "safeEnabled": false,
+    "authToken": "",
+    "x": 420,
+    "y": 360,
+    "wires": [
+      [
+        "debug-loopback-success"
+      ],
+      [
+        "debug-loopback-error"
+      ]
+    ]
+  },
+  {
+    "id": "debug-loopback-success",
+    "type": "debug",
+    "z": "tab-rpc-loopback",
+    "name": "client success payload",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 700,
+    "y": 320,
+    "wires": []
+  },
+  {
+    "id": "debug-loopback-error",
+    "type": "debug",
+    "z": "tab-rpc-loopback",
+    "name": "client error",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "error",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 680,
+    "y": 370,
+    "wires": []
+  },
+  {
+    "id": "comment-loopback",
+    "type": "comment",
+    "z": "tab-rpc-loopback",
+    "name": "Self-contained server and client",
+    "info": "Deploy this flow, then click the inject buttons. It tests rpc-server, rpc-method, rpc-response, and rpc-client in one local flow.",
+    "x": 280,
+    "y": 60,
+    "wires": []
+  }
+]

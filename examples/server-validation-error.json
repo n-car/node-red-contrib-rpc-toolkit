@@ -1,0 +1,116 @@
+[
+  {
+    "id": "tab-rpc-validation",
+    "type": "tab",
+    "label": "RPC validation and error",
+    "disabled": false,
+    "info": "Standard JSON-RPC endpoint showing schema validation and custom errors."
+  },
+  {
+    "id": "rpc-validation-server",
+    "type": "rpc-server",
+    "name": "Validation Server",
+    "endpoint": "/rpc-validation",
+    "safeEnabled": false,
+    "corsEnabled": true
+  },
+  {
+    "id": "rpc-validation-sum",
+    "type": "rpc-method",
+    "z": "tab-rpc-validation",
+    "name": "sum with schema",
+    "server": "rpc-validation-server",
+    "methodName": "sum",
+    "description": "Add two numbers with schema validation",
+    "exposeSchema": true,
+    "schema": "{\"type\":\"object\",\"properties\":{\"a\":{\"type\":\"number\"},\"b\":{\"type\":\"number\"}},\"required\":[\"a\",\"b\"]}",
+    "validateSchema": true,
+    "x": 230,
+    "y": 120,
+    "wires": [
+      [
+        "fn-validation-sum"
+      ],
+      []
+    ]
+  },
+  {
+    "id": "fn-validation-sum",
+    "type": "function",
+    "z": "tab-rpc-validation",
+    "name": "add numbers",
+    "func": "const params = msg.payload || {};\nmsg.payload = params.a + params.b;\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 480,
+    "y": 120,
+    "wires": [
+      [
+        "rpc-validation-response"
+      ]
+    ]
+  },
+  {
+    "id": "rpc-validation-domain-error",
+    "type": "rpc-method",
+    "z": "tab-rpc-validation",
+    "name": "domainError",
+    "server": "rpc-validation-server",
+    "methodName": "domainError",
+    "description": "Return a custom JSON-RPC error",
+    "exposeSchema": true,
+    "schema": "",
+    "validateSchema": false,
+    "x": 240,
+    "y": 180,
+    "wires": [
+      [
+        "fn-validation-domain-error"
+      ],
+      []
+    ]
+  },
+  {
+    "id": "fn-validation-domain-error",
+    "type": "function",
+    "z": "tab-rpc-validation",
+    "name": "make error",
+    "func": "msg.error = {\n    code: -32042,\n    message: \"Domain failure\",\n    data: {\n        reason: \"intentional-test-error\"\n    }\n};\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 480,
+    "y": 180,
+    "wires": [
+      [
+        "rpc-validation-response"
+      ]
+    ]
+  },
+  {
+    "id": "rpc-validation-response",
+    "type": "rpc-response",
+    "z": "tab-rpc-validation",
+    "name": "send response",
+    "x": 720,
+    "y": 150,
+    "wires": []
+  },
+  {
+    "id": "comment-validation",
+    "type": "comment",
+    "z": "tab-rpc-validation",
+    "name": "Validation endpoint: /rpc-validation",
+    "info": "Call sum with invalid params to get -32602. Call domainError to get a custom JSON-RPC error with error.data.",
+    "x": 290,
+    "y": 60,
+    "wires": []
+  }
+]

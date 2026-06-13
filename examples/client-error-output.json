@@ -1,0 +1,99 @@
+[
+  {
+    "id": "tab-rpc-client-error",
+    "type": "tab",
+    "label": "RPC client error output",
+    "disabled": false,
+    "info": "RPC Client error output example."
+  },
+  {
+    "id": "inject-client-missing-method",
+    "type": "inject",
+    "z": "tab-rpc-client-error",
+    "name": "call missing method",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "payload": "{}",
+    "payloadType": "json",
+    "x": 210,
+    "y": 120,
+    "wires": [
+      [
+        "rpc-client-missing-method"
+      ]
+    ]
+  },
+  {
+    "id": "rpc-client-missing-method",
+    "type": "rpc-client",
+    "z": "tab-rpc-client-error",
+    "name": "missing method client",
+    "serverUrl": "http://127.0.0.1:1880/rpc-standard",
+    "method": "missingMethod",
+    "timeout": 5000,
+    "safeEnabled": false,
+    "authToken": "",
+    "x": 470,
+    "y": 120,
+    "wires": [
+      [
+        "debug-client-error-unexpected-success"
+      ],
+      [
+        "debug-client-error-expected"
+      ]
+    ]
+  },
+  {
+    "id": "debug-client-error-unexpected-success",
+    "type": "debug",
+    "z": "tab-rpc-client-error",
+    "name": "unexpected success",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 760,
+    "y": 100,
+    "wires": []
+  },
+  {
+    "id": "debug-client-error-expected",
+    "type": "debug",
+    "z": "tab-rpc-client-error",
+    "name": "expected error",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "error",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 740,
+    "y": 150,
+    "wires": []
+  },
+  {
+    "id": "comment-client-error",
+    "type": "comment",
+    "z": "tab-rpc-client-error",
+    "name": "Requires examples/server-standard-basic.json",
+    "info": "This flow deliberately calls missingMethod. The expected result is a JSON-RPC -32601 error on output 2.",
+    "x": 300,
+    "y": 60,
+    "wires": []
+  }
+]

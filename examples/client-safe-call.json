@@ -1,0 +1,99 @@
+[
+  {
+    "id": "tab-rpc-client-safe",
+    "type": "tab",
+    "label": "RPC client Safe Mode",
+    "disabled": false,
+    "info": "RPC Client call to a Safe Mode endpoint."
+  },
+  {
+    "id": "inject-client-safe-ping",
+    "type": "inject",
+    "z": "tab-rpc-client-safe",
+    "name": "call safe ping",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "payload": "{}",
+    "payloadType": "json",
+    "x": 190,
+    "y": 120,
+    "wires": [
+      [
+        "rpc-client-safe-ping"
+      ]
+    ]
+  },
+  {
+    "id": "rpc-client-safe-ping",
+    "type": "rpc-client",
+    "z": "tab-rpc-client-safe",
+    "name": "safe ping client",
+    "serverUrl": "http://127.0.0.1:1880/rpc-safe",
+    "method": "ping",
+    "timeout": 5000,
+    "safeEnabled": true,
+    "authToken": "",
+    "x": 430,
+    "y": 120,
+    "wires": [
+      [
+        "debug-client-safe-success"
+      ],
+      [
+        "debug-client-safe-error"
+      ]
+    ]
+  },
+  {
+    "id": "debug-client-safe-success",
+    "type": "debug",
+    "z": "tab-rpc-client-safe",
+    "name": "success payload",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 690,
+    "y": 100,
+    "wires": []
+  },
+  {
+    "id": "debug-client-safe-error",
+    "type": "debug",
+    "z": "tab-rpc-client-safe",
+    "name": "error output",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "error",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 680,
+    "y": 150,
+    "wires": []
+  },
+  {
+    "id": "comment-client-safe",
+    "type": "comment",
+    "z": "tab-rpc-client-safe",
+    "name": "Requires examples/server-safe-basic.json",
+    "info": "Import and deploy server-safe-basic.json first, or point the client to another RPC Toolkit Safe Mode endpoint.",
+    "x": 290,
+    "y": 60,
+    "wires": []
+  }
+]
