@@ -1,0 +1,64 @@
+[
+  {
+    "id": "tab-rpc-request-parser",
+    "type": "tab",
+    "label": "RPC request parser",
+    "disabled": false,
+    "info": "Minimal rpc-request parser example."
+  },
+  {
+    "id": "inject-request-parser",
+    "type": "inject",
+    "z": "tab-rpc-request-parser",
+    "name": "sample JSON-RPC request",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "payload": "{\"jsonrpc\":\"2.0\",\"method\":\"sum\",\"params\":{\"a\":5,\"b\":7},\"id\":1}",
+    "payloadType": "json",
+    "x": 210,
+    "y": 120,
+    "wires": [
+      [
+        "rpc-request-parser"
+      ]
+    ]
+  },
+  {
+    "id": "rpc-request-parser",
+    "type": "rpc-request",
+    "z": "tab-rpc-request-parser",
+    "name": "parse request",
+    "x": 460,
+    "y": 120,
+    "wires": [
+      [
+        "debug-request-parser"
+      ]
+    ]
+  },
+  {
+    "id": "debug-request-parser",
+    "type": "debug",
+    "z": "tab-rpc-request-parser",
+    "name": "parsed request",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 690,
+    "y": 120,
+    "wires": []
+  }
+]

@@ -237,6 +237,7 @@ The examples are grouped by test type:
 - standard JSON-RPC client
 - Safe Mode client
 - client error output
+- request parser
 - full local server/client loopback
 
 ## Local Development

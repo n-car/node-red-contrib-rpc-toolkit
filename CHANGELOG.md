@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.4] - 2026-06-13
+
+### Added
+- Added a ready-to-import `rpc-request` parser example so every non-config node has example coverage in the Node-RED Flow Library scorecard.
+
 ## [2.2.3] - 2026-06-13
 
 ### Added

@@ -15,6 +15,7 @@ Import a flow from Node-RED with **Menu > Import**, paste the JSON file contents
 | [client-standard-call.json](client-standard-call.json) | `rpc-client` calling a standard JSON-RPC endpoint | uses `/rpc-standard` | disabled |
 | [client-safe-call.json](client-safe-call.json) | `rpc-client` calling a Safe Mode endpoint | uses `/rpc-safe` | enabled |
 | [client-error-output.json](client-error-output.json) | `rpc-client` output 2 error routing | uses `/rpc-standard` | disabled |
+| [request-parser-basic.json](request-parser-basic.json) | Minimal `rpc-request` parser example | none | n/a |
 | [full-local-loopback.json](full-local-loopback.json) | Self-contained server and client loopback test | `/rpc-loopback` | disabled |
 
 ## Server Tests
@@ -121,3 +122,13 @@ Deploy the flow, then click the inject buttons. Expected debug results:
 
 - `client call ping`: `pong`
 - `client call sum`: `12`
+
+## Request Parser Test
+
+Import [request-parser-basic.json](request-parser-basic.json) when you want to inspect the low-level `rpc-request` node behavior.
+
+Click the inject button and check the debug sidebar. The node parses the JSON-RPC request object and sets:
+
+- `msg.payload` to the request `params`
+- `msg.rpc.method` to the JSON-RPC method name
+- `msg.rpc.id` to the request id
