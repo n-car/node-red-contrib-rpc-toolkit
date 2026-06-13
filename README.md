@@ -11,10 +11,11 @@ The package is designed to connect Node-RED flows with RPC Toolkit endpoints suc
 ## Status
 
 - Published on npm as `node-red-contrib-rpc-toolkit`.
+- Indexed in the Node-RED Flow Library and installable through Palette Manager.
 - Requires Node.js 18 or newer.
 - Tested locally with Node-RED 5.0.0 in unit tests and Node-RED 4.1.0 in the Docker interoperability harness.
+- Public Node-RED Flow Library scorecard is green.
 - npm audit is clean for runtime and development dependencies.
-- Node-RED Flow Library visibility may lag behind npm publication. If the package is not visible in Palette Manager yet, install it from npm in the Node-RED user directory.
 
 ## Nodes
 
@@ -55,8 +56,6 @@ npm install node-red-contrib-rpc-toolkit
 Restart Node-RED after installing from the command line.
 
 ### Palette Manager
-
-When the package is visible in the Node-RED Flow Library:
 
 1. Open Node-RED.
 2. Go to **Menu > Manage palette**.
