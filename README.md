@@ -29,6 +29,26 @@ The package is designed to connect Node-RED flows with RPC Toolkit endpoints suc
 - `rpc-client` - calls a remote JSON-RPC HTTP endpoint.
 - `rpc-request` - parses an incoming JSON-RPC request from an existing HTTP flow.
 
+## Typical Flows
+
+Create an RPC endpoint with a flow-backed method:
+
+```text
+[rpc-method: ping] -> [function: msg.payload = "pong"] -> [rpc-response]
+```
+
+Call a remote endpoint from a flow:
+
+```text
+[inject params] -> [rpc-client: ping] -> [debug result]
+```
+
+Parse an existing HTTP flow manually only when you need custom routing outside the `rpc-server` config node:
+
+```text
+[http in] -> [rpc-request] -> [function] -> [http response]
+```
+
 ## Implemented Features
 
 - JSON-RPC 2.0 calls, errors, notifications, and batch requests.
