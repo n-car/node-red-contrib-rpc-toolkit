@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.6] - 2026-06-18
+
+### Fixed
+- Replaced the broken dynamic Node-RED badge with a stable Flow Library badge.
+
 ## [2.2.5] - 2026-06-18
 
 ### Changed

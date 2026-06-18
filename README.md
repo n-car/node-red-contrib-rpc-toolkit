@@ -3,7 +3,7 @@
 [![CI](https://github.com/n-car/node-red-contrib-rpc-toolkit/actions/workflows/ci.yml/badge.svg)](https://github.com/n-car/node-red-contrib-rpc-toolkit/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/node-red-contrib-rpc-toolkit.svg)](https://www.npmjs.com/package/node-red-contrib-rpc-toolkit)
 [![npm downloads](https://img.shields.io/npm/dm/node-red-contrib-rpc-toolkit.svg)](https://www.npmjs.com/package/node-red-contrib-rpc-toolkit)
-[![Node-RED](https://img.shields.io/node-red/v/node-red-contrib-rpc-toolkit.svg)](https://flows.nodered.org/node/node-red-contrib-rpc-toolkit)
+[![Node-RED](https://img.shields.io/badge/Node--RED-flow%20library-red.svg)](https://flows.nodered.org/node/node-red-contrib-rpc-toolkit)
 [![node](https://img.shields.io/node/v/node-red-contrib-rpc-toolkit.svg)](https://www.npmjs.com/package/node-red-contrib-rpc-toolkit)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/status-stable-green.svg)](https://flows.nodered.org/node/node-red-contrib-rpc-toolkit)
