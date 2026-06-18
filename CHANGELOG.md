@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-06-19
+
+### Added
+- RPC Server can require bearer token authentication, with the token stored in Node-RED credentials.
+- Added a ready-to-import bearer authentication loopback example flow.
+
+### Changed
+- RPC Client auth token is stored in Node-RED credentials while retaining fallback support for previously exported flow fields.
+- Refined RPC Server and RPC Client editor layouts for Safe Mode, authentication, and server status settings.
+
 ## [2.2.6] - 2026-06-18
 
 ### Fixed

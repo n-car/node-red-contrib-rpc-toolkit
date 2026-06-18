@@ -137,7 +137,6 @@
     "method": "ping",
     "timeout": 5000,
     "safeEnabled": false,
-    "authToken": "",
     "x": 420,
     "y": 300,
     "wires": [
@@ -183,7 +182,6 @@
     "method": "sum",
     "timeout": 5000,
     "safeEnabled": false,
-    "authToken": "",
     "x": 420,
     "y": 360,
     "wires": [

@@ -17,6 +17,7 @@ Import a flow from Node-RED with **Menu > Import**, paste the JSON file contents
 | [client-error-output.json](client-error-output.json) | `rpc-client` output 2 error routing | uses `/rpc-standard` | disabled |
 | [request-parser-basic.json](request-parser-basic.json) | Minimal `rpc-request` parser example | none | n/a |
 | [full-local-loopback.json](full-local-loopback.json) | Self-contained server and client loopback test | `/rpc-loopback` | disabled |
+| [server-bearer-auth-loopback.json](server-bearer-auth-loopback.json) | Self-contained bearer auth server and client test | `/rpc-auth` | disabled |
 
 ## Server Tests
 
@@ -122,6 +123,23 @@ Deploy the flow, then click the inject buttons. Expected debug results:
 
 - `client call ping`: `pong`
 - `client call sum`: `12`
+
+## Bearer Auth Loopback Test
+
+Import [server-bearer-auth-loopback.json](server-bearer-auth-loopback.json) when you want to test `rpc-server` bearer authentication and `rpc-client` Authorization header handling in one local flow.
+
+The example intentionally does not include a token in the JSON export. Tokens are stored as Node-RED credentials.
+
+Before deploying:
+
+- open the `Bearer RPC Server` config node and set `Auth Token` to `rpc-test-token`;
+- open the `call ping with token` client node and set `Auth Token` to `rpc-test-token`;
+- leave the `call ping without token` client node blank.
+
+Deploy the flow, then click the inject buttons. Expected debug results:
+
+- `client call ping with token`: output 1 receives `msg.payload = "pong"`;
+- `client call ping without token`: output 2 receives an HTTP 401 unauthorized error.
 
 ## Request Parser Test
 

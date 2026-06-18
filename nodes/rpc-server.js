@@ -3,8 +3,38 @@
  * Creates a global HTTP endpoint for JSON-RPC 2.0 requests
  */
 
+const crypto = require('crypto');
 const express = require('express');
 const { RpcEndpoint } = require('rpc-express-toolkit');
+
+function normalizeBearerHeader(authToken) {
+    if (!authToken) {
+        return '';
+    }
+
+    return authToken.startsWith('Bearer ')
+        ? authToken
+        : `Bearer ${authToken}`;
+}
+
+function timingSafeEqualString(left, right) {
+    const leftBuffer = Buffer.from(left);
+    const rightBuffer = Buffer.from(right);
+
+    return leftBuffer.length === rightBuffer.length && crypto.timingSafeEqual(leftBuffer, rightBuffer);
+}
+
+function sendUnauthorized(res) {
+    res.set('WWW-Authenticate', 'Bearer');
+    return res.status(401).json({
+        jsonrpc: '2.0',
+        id: null,
+        error: {
+            code: -32001,
+            message: 'Unauthorized'
+        }
+    });
+}
 
 module.exports = function(RED) {
     function parseBoolean(value, defaultValue) {
@@ -22,11 +52,17 @@ module.exports = function(RED) {
         const endpoint = config.endpoint || '/rpc';
         const safeEnabled = parseBoolean(config.safeEnabled, true);
         const corsEnabled = parseBoolean(config.corsEnabled, false);
+        const authMode = config.authMode || (parseBoolean(config.authEnabled, false) ? 'bearer' : 'none');
+        const authEnabled = authMode === 'bearer';
+        const authToken = (node.credentials && node.credentials.authToken) || config.authToken || '';
+        const expectedAuthorization = normalizeBearerHeader(authToken);
 
         // Store endpoint for info display
         node.endpoint = endpoint;
         node.safeEnabled = safeEnabled;
         node.corsEnabled = corsEnabled;
+        node.authMode = authMode;
+        node.authEnabled = authEnabled;
         
         // Verify HTTP server is available
         if (!RED.httpNode) {
@@ -36,8 +72,7 @@ module.exports = function(RED) {
         
         // Create a mini Express app for RPC
         const app = express();
-        app.use(express.json());
-        
+
         // Add CORS middleware if enabled
         if (corsEnabled) {
             app.use((req, res, next) => {
@@ -51,7 +86,32 @@ module.exports = function(RED) {
                 next();
             });
         }
-        
+
+        if (authEnabled && !expectedAuthorization) {
+            node.warn("RPC Server bearer authentication is enabled but no token is configured; requests will be rejected");
+        }
+
+        if (authEnabled) {
+            app.use((req, res, next) => {
+                if (req.method === 'OPTIONS') {
+                    return next();
+                }
+
+                if (!expectedAuthorization) {
+                    return sendUnauthorized(res);
+                }
+
+                const authorization = req.get('authorization') || '';
+                if (!timingSafeEqualString(authorization, expectedAuthorization)) {
+                    return sendUnauthorized(res);
+                }
+
+                next();
+            });
+        }
+
+        app.use(express.json());
+
         // Create RPC endpoint with the mini app
         const rpcOptions = {
             safeEnabled: safeEnabled,
@@ -68,7 +128,8 @@ module.exports = function(RED) {
             const baseCapabilitiesHandler = capabilitiesMethod.handler;
             capabilitiesMethod.handler = async (...args) => ({
                 ...(await baseCapabilitiesHandler(...args)),
-                cors: corsEnabled
+                cors: corsEnabled,
+                auth: authMode
             });
         }
         
@@ -108,7 +169,11 @@ module.exports = function(RED) {
         });
     }
     
-    RED.nodes.registerType("rpc-server", RpcServerNode);
+    RED.nodes.registerType("rpc-server", RpcServerNode, {
+        credentials: {
+            authToken: { type: "password" }
+        }
+    });
     
     // Endpoint to get server info for config UI
     RED.httpAdmin.get('/rpc-server-info/:id', function(req, res) {
@@ -116,10 +181,12 @@ module.exports = function(RED) {
         if (node && node.rpc) {
             res.json({
                 active: true,
-                endpoint: node.endpoint,
-                safeEnabled: node.safeEnabled,
-                corsEnabled: node.corsEnabled,
-                methodCount: node.registeredMethods ? node.registeredMethods.length : 0,
+	                endpoint: node.endpoint,
+	                safeEnabled: node.safeEnabled,
+	                corsEnabled: node.corsEnabled,
+                    authEnabled: node.authEnabled,
+                    authMode: node.authMode,
+	                methodCount: node.registeredMethods ? node.registeredMethods.length : 0,
                 methods: node.registeredMethods || []
             });
         } else {

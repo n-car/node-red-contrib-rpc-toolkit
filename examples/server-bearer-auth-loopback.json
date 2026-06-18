@@ -1,0 +1,201 @@
+[
+  {
+    "id": "tab-rpc-auth-loopback",
+    "type": "tab",
+    "label": "RPC bearer auth loopback",
+    "disabled": false,
+    "info": "Self-contained local server and client test with bearer authentication."
+  },
+  {
+    "id": "rpc-auth-server",
+    "type": "rpc-server",
+    "name": "Bearer RPC Server",
+    "endpoint": "/rpc-auth",
+    "safeEnabled": false,
+    "corsEnabled": true,
+    "authMode": "bearer"
+  },
+  {
+    "id": "rpc-auth-ping",
+    "type": "rpc-method",
+    "z": "tab-rpc-auth-loopback",
+    "name": "ping",
+    "server": "rpc-auth-server",
+    "methodName": "ping",
+    "description": "Return pong from an authenticated endpoint",
+    "exposeSchema": true,
+    "schema": "",
+    "validateSchema": false,
+    "x": 220,
+    "y": 140,
+    "wires": [
+      [
+        "fn-auth-ping"
+      ],
+      []
+    ]
+  },
+  {
+    "id": "fn-auth-ping",
+    "type": "function",
+    "z": "tab-rpc-auth-loopback",
+    "name": "return pong",
+    "func": "msg.payload = \"pong\";\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 470,
+    "y": 140,
+    "wires": [
+      [
+        "rpc-auth-response"
+      ]
+    ]
+  },
+  {
+    "id": "rpc-auth-response",
+    "type": "rpc-response",
+    "z": "tab-rpc-auth-loopback",
+    "name": "send response",
+    "x": 710,
+    "y": 140,
+    "wires": []
+  },
+  {
+    "id": "inject-auth-ping",
+    "type": "inject",
+    "z": "tab-rpc-auth-loopback",
+    "name": "client call ping with token",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "payload": "{}",
+    "payloadType": "json",
+    "x": 210,
+    "y": 300,
+    "wires": [
+      [
+        "rpc-auth-client-ping"
+      ]
+    ]
+  },
+  {
+    "id": "rpc-auth-client-ping",
+    "type": "rpc-client",
+    "z": "tab-rpc-auth-loopback",
+    "name": "call ping with token",
+    "serverUrl": "http://127.0.0.1:1880/rpc-auth",
+    "method": "ping",
+    "timeout": 5000,
+    "safeEnabled": false,
+    "x": 480,
+    "y": 300,
+    "wires": [
+      [
+        "debug-auth-success"
+      ],
+      [
+        "debug-auth-error"
+      ]
+    ]
+  },
+  {
+    "id": "inject-auth-missing",
+    "type": "inject",
+    "z": "tab-rpc-auth-loopback",
+    "name": "client call ping without token",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "payload": "{}",
+    "payloadType": "json",
+    "x": 220,
+    "y": 360,
+    "wires": [
+      [
+        "rpc-auth-client-missing"
+      ]
+    ]
+  },
+  {
+    "id": "rpc-auth-client-missing",
+    "type": "rpc-client",
+    "z": "tab-rpc-auth-loopback",
+    "name": "call ping without token",
+    "serverUrl": "http://127.0.0.1:1880/rpc-auth",
+    "method": "ping",
+    "timeout": 5000,
+    "safeEnabled": false,
+    "x": 490,
+    "y": 360,
+    "wires": [
+      [
+        "debug-auth-success"
+      ],
+      [
+        "debug-auth-error"
+      ]
+    ]
+  },
+  {
+    "id": "debug-auth-success",
+    "type": "debug",
+    "z": "tab-rpc-auth-loopback",
+    "name": "client success payload",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 770,
+    "y": 300,
+    "wires": []
+  },
+  {
+    "id": "debug-auth-error",
+    "type": "debug",
+    "z": "tab-rpc-auth-loopback",
+    "name": "client error",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "error",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 740,
+    "y": 360,
+    "wires": []
+  },
+  {
+    "id": "comment-auth-loopback",
+    "type": "comment",
+    "z": "tab-rpc-auth-loopback",
+    "name": "Bearer auth setup",
+    "info": "Before deploying, open the Bearer RPC Server config node and set Auth Token to rpc-test-token. Then open the call ping with token client node and set the same Auth Token. Leave call ping without token blank to test the HTTP 401 path. Tokens are stored as Node-RED credentials and are not included in this example JSON.",
+    "x": 240,
+    "y": 70,
+    "wires": []
+  }
+]

@@ -40,7 +40,6 @@
     "method": "ping",
     "timeout": 5000,
     "safeEnabled": true,
-    "authToken": "",
     "x": 430,
     "y": 120,
     "wires": [

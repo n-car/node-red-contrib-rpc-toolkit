@@ -184,12 +184,13 @@ In this mode:
 - Optional RPC Toolkit Safe Mode over HTTP.
 - Explicit Safe Mode header handling on the server when Safe Mode is enabled.
 - CORS support on the server node.
-- Optional Authorization header passthrough on the client node.
+- Optional bearer token authentication on the server node, with tokens stored in Node-RED credentials.
+- Optional Authorization header passthrough on the client node, with tokens stored in Node-RED credentials.
 - Client editor helper for loading remote methods through introspection.
 
 Not currently implemented by this package:
 
-- Server-side JWT authentication middleware.
+- Server-side JWT validation middleware.
 - Server-side rate limiting configuration.
 - WebSocket transport.
 - A dedicated visual batch node. Batch requests are supported by the JSON-RPC endpoint, but not exposed as a separate Node-RED node.
@@ -204,7 +205,10 @@ Configuration:
 
 - `Endpoint` - HTTP path, for example `/rpc`.
 - `CORS` - enables CORS headers, including `X-RPC-Safe-Enabled`.
+- `Authentication` - optional bearer token authentication. The token is stored in Node-RED credentials.
 - `Safe Mode` - enabled by default for RPC Toolkit interoperability. Disable it to expose a standard JSON-RPC 2.0 endpoint for generic clients.
+
+When bearer authentication is enabled, requests must include `Authorization: Bearer <token>`. Unauthorized requests are rejected with HTTP 401 before JSON-RPC method dispatch.
 
 When Safe Mode is enabled, the server expects the `X-RPC-Safe-Enabled` header so both sides know encoded values are in use. Requests without that header are rejected with JSON-RPC error `-32600`.
 
@@ -257,7 +261,7 @@ Configuration:
 - `Server URL` - full endpoint URL, for example `http://localhost:3000/api`.
 - `Method` - default method name.
 - `Timeout` - request timeout in milliseconds.
-- `Auth Token` - optional token sent as an `Authorization` header.
+- `Auth Token` - optional bearer token stored in Node-RED credentials and sent as an `Authorization` header.
 - `Safe Mode` - enabled by default.
 
 Input:
@@ -324,6 +328,7 @@ The examples are grouped by test type:
 - standard JSON-RPC client;
 - Safe Mode client;
 - client error output;
+- bearer token auth loopback;
 - request parser;
 - full local server/client loopback.
 

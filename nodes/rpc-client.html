@@ -7,8 +7,10 @@
             serverUrl: { value: "", required: true },
             method: { value: "", required: true },
             timeout: { value: 5000, validate: RED.validators.number() },
-            safeEnabled: { value: true },
-            authToken: { value: "" }
+            safeEnabled: { value: true }
+        },
+        credentials: {
+            authToken: { type: "password" }
         },
         inputs: 1,
         outputs: 2,
@@ -31,7 +33,7 @@
                     return;
                 }
                 
-                $('#node-input-load-methods').prop('disabled', true).text('Loading...');
+	                $('#node-input-load-methods').prop('disabled', true).html('<i class="fa fa-refresh"></i> Loading');
                 
                 const authToken = $('#node-input-authToken').val();
                 const safeEnabled = $('#node-input-safeEnabled').is(':checked');
@@ -43,7 +45,8 @@
                     data: JSON.stringify({
                         serverUrl: serverUrl,
                         authToken: authToken,
-                        safeEnabled: safeEnabled
+                        safeEnabled: safeEnabled,
+                        nodeId: node.id
                     })
                 })
                 .done(function(response) {
@@ -71,7 +74,7 @@
                     }
                 })
                 .always(function() {
-                    $('#node-input-load-methods').prop('disabled', false).text('Load Methods');
+	                    $('#node-input-load-methods').prop('disabled', false).html('<i class="fa fa-refresh"></i> Load');
                 });
             });
             
@@ -95,50 +98,101 @@
                 $('#node-input-method-select').hide();
             }
         }
-    });
-</script>
+	    });
+	</script>
 
-<script type="text/html" data-template-name="rpc-client">
-    <div class="form-row">
-        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-        <input type="text" id="node-input-name" placeholder="Name">
-    </div>
-    
-    <div class="form-row">
-        <label for="node-input-serverUrl"><i class="fa fa-server"></i> Server URL</label>
-        <input type="text" id="node-input-serverUrl" placeholder="http://localhost:3000/rpc">
-    </div>
-    
-    <div class="form-row">
-        <label for="node-input-method"><i class="fa fa-code"></i> Method</label>
-        <div style="display: inline-block; width: 70%;">
-            <select id="node-input-method-select" style="width: 100%; display: none;"></select>
-            <input type="text" id="node-input-method" placeholder="methodName" style="width: 100%;">
+<style>
+    .rpc-toolkit-editor .form-row {
+        margin-bottom: 12px;
+    }
+
+    .rpc-toolkit-editor .form-row > label {
+        width: 120px;
+    }
+
+    .rpc-toolkit-editor .rpc-toolkit-control {
+        width: calc(100% - 130px) !important;
+        max-width: 360px;
+    }
+
+    .rpc-toolkit-editor .rpc-toolkit-method-control {
+        display: inline-flex;
+        gap: 6px;
+        width: calc(100% - 130px);
+        max-width: 360px;
+        vertical-align: top;
+    }
+
+    .rpc-toolkit-editor .rpc-toolkit-method-control input,
+    .rpc-toolkit-editor .rpc-toolkit-method-control select {
+        flex: 1 1 auto;
+        min-width: 0;
+        width: auto !important;
+        margin-bottom: 0;
+    }
+
+    .rpc-toolkit-editor .rpc-toolkit-method-control button {
+        flex: 0 0 auto;
+        margin-left: 0 !important;
+        white-space: nowrap;
+    }
+
+    .rpc-toolkit-editor .rpc-toolkit-check-row input[type="checkbox"] {
+        width: auto;
+        margin-top: 3px;
+        vertical-align: top;
+    }
+
+    .rpc-toolkit-editor .form-row > label.rpc-toolkit-check-label {
+        display: inline;
+        width: auto;
+        margin-left: 6px;
+    }
+</style>
+	
+	<script type="text/html" data-template-name="rpc-client">
+    <div class="rpc-toolkit-editor rpc-toolkit-client-editor">
+	    <div class="form-row">
+	        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" class="rpc-toolkit-control" placeholder="Name">
+	    </div>
+	    
+	    <div class="form-row">
+	        <label for="node-input-serverUrl"><i class="fa fa-server"></i> Server URL</label>
+        <input type="text" id="node-input-serverUrl" class="rpc-toolkit-control" placeholder="http://localhost:3000/rpc">
+	    </div>
+	    
+	    <div class="form-row">
+	        <label for="node-input-method"><i class="fa fa-code"></i> Method</label>
+        <div class="rpc-toolkit-method-control">
+            <select id="node-input-method-select" style="display: none;"></select>
+            <input type="text" id="node-input-method" placeholder="methodName">
+            <button type="button" id="node-input-load-methods" class="red-ui-button" title="Load methods from server introspection">
+                <i class="fa fa-refresh"></i> Load
+            </button>
+            <button type="button" id="node-input-manual-method" class="red-ui-button" style="display: none;" title="Enter method manually">
+                <i class="fa fa-keyboard-o"></i>
+            </button>
         </div>
-        <button type="button" id="node-input-load-methods" class="red-ui-button" style="margin-left: 5px;">
-            <i class="fa fa-refresh"></i> Load Methods
-        </button>
-        <button type="button" id="node-input-manual-method" class="red-ui-button" style="margin-left: 5px; display: none;" title="Enter method manually">
-            <i class="fa fa-keyboard-o"></i>
-        </button>
+	    </div>
+	    
+	    <div class="form-row">
+	        <label for="node-input-timeout"><i class="fa fa-clock-o"></i> Timeout (ms)</label>
+        <input type="number" id="node-input-timeout" class="rpc-toolkit-control" placeholder="5000">
+	    </div>
+	    
+	    <div class="form-row">
+	        <label for="node-input-authToken"><i class="fa fa-key"></i> Auth Token</label>
+        <input type="password" id="node-input-authToken" class="rpc-toolkit-control" placeholder="Optional bearer token">
+	    </div>
+	    
+    <div class="form-row rpc-toolkit-check-row">
+        <label for="node-input-safeEnabled"><i class="fa fa-shield"></i> Safe Mode</label>
+	        <input type="checkbox" id="node-input-safeEnabled" style="display:inline-block; width:auto; vertical-align:top;">
+        <label for="node-input-safeEnabled" class="rpc-toolkit-check-label">Enabled</label>
+	    </div>
     </div>
-    
-    <div class="form-row">
-        <label for="node-input-timeout"><i class="fa fa-clock-o"></i> Timeout (ms)</label>
-        <input type="number" id="node-input-timeout" placeholder="5000">
-    </div>
-    
-    <div class="form-row">
-        <label for="node-input-authToken"><i class="fa fa-key"></i> Auth Token</label>
-        <input type="text" id="node-input-authToken" placeholder="Optional">
-    </div>
-    
-    <div class="form-row">
-        <label>&nbsp;</label>
-        <input type="checkbox" id="node-input-safeEnabled" style="display:inline-block; width:auto; vertical-align:top;">
-        <label for="node-input-safeEnabled" style="width:70%">Enable Safe Mode</label>
-    </div>
-</script>
+	</script>
 
 <script type="text/html" data-help-name="rpc-client">
     <p>Calls a remote JSON-RPC 2.0 server method.</p>
@@ -153,7 +207,10 @@
         
         <dt>Timeout <span class="property-type">number</span></dt>
         <dd>Request timeout in milliseconds (default: 5000)</dd>
-        
+
+        <dt class="optional">Auth Token <span class="property-type">credential</span></dt>
+        <dd>Optional bearer token stored in Node-RED credentials and sent as the HTTP <code>Authorization</code> header.</dd>
+
         <dt>Safe Mode <span class="property-type">boolean</span></dt>
         <dd>Enabled by default to ensure compatibility with RPC Toolkit servers. Disable only when calling legacy endpoints that do not support safe serialization headers.</dd>
     </dl>

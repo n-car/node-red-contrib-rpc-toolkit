@@ -7,6 +7,37 @@
 
 const { RpcClient } = require('rpc-express-toolkit');
 
+function getConfiguredAuthToken(node, config) {
+    return (node.credentials && node.credentials.authToken) || config.authToken || '';
+}
+
+function getRequestAuthToken(RED, requestBody) {
+    const bodyToken = requestBody.authToken || '';
+
+    if (bodyToken && bodyToken !== '__PWRD__') {
+        return bodyToken;
+    }
+
+    if (!requestBody.nodeId || typeof RED.nodes.getCredentials !== 'function') {
+        return bodyToken === '__PWRD__' ? '' : bodyToken;
+    }
+
+    const credentials = RED.nodes.getCredentials(requestBody.nodeId) || {};
+    return credentials.authToken || '';
+}
+
+function createAuthorizationHeaders(authToken) {
+    if (!authToken) {
+        return {};
+    }
+
+    return {
+        Authorization: authToken.startsWith('Bearer ')
+            ? authToken
+            : `Bearer ${authToken}`
+    };
+}
+
 module.exports = function(RED) {
     function RpcClientNode(config) {
         RED.nodes.createNode(this, config);
@@ -17,7 +48,7 @@ module.exports = function(RED) {
         const method = config.method;
         const timeout = config.timeout || 5000;
         const safeEnabled = config.safeEnabled !== false; // default to true unless explicitly disabled
-        const authToken = config.authToken || '';
+        const authToken = getConfiguredAuthToken(node, config);
         
         // Create RPC client
         const clientOptions = {
@@ -25,12 +56,7 @@ module.exports = function(RED) {
             safeEnabled: safeEnabled
         };
         
-        const headers = {};
-        if (authToken) {
-            headers['Authorization'] = authToken.startsWith('Bearer ')
-                ? authToken
-                : `Bearer ${authToken}`;
-        }
+        const headers = createAuthorizationHeaders(authToken);
         
         node.client = new RpcClient(serverUrl, headers, clientOptions);
         
@@ -87,23 +113,24 @@ module.exports = function(RED) {
         });
     }
     
-    RED.nodes.registerType("rpc-client", RpcClientNode);
+    RED.nodes.registerType("rpc-client", RpcClientNode, {
+        credentials: {
+            authToken: { type: "password" }
+        }
+    });
 
     // Admin endpoint used by editor UI to load method list via RpcClient
     RED.httpAdmin.post('/rpc-client/introspect', async function(req, res) {
-        const { serverUrl, authToken, safeEnabled } = req.body || {};
+        const requestBody = req.body || {};
+        const { serverUrl, safeEnabled } = requestBody;
 
         if (!serverUrl) {
             return res.status(400).json({ success: false, error: { message: 'Missing serverUrl' } });
         }
 
         try {
-            const headers = {};
-            if (authToken) {
-                headers['Authorization'] = authToken.startsWith('Bearer ')
-                    ? authToken
-                    : `Bearer ${authToken}`;
-            }
+            const authToken = getRequestAuthToken(RED, requestBody);
+            const headers = createAuthorizationHeaders(authToken);
 
             const client = new RpcClient(serverUrl, headers, {
                 timeout: 5000,

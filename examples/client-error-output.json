@@ -40,7 +40,6 @@
     "method": "missingMethod",
     "timeout": 5000,
     "safeEnabled": false,
-    "authToken": "",
     "x": 470,
     "y": 120,
     "wires": [
