@@ -332,9 +332,17 @@ The examples are grouped by test type:
 - Published on npm as `node-red-contrib-rpc-toolkit`.
 - Indexed in the Node-RED Flow Library and installable through Palette Manager.
 - Requires Node.js 18 or newer.
-- Tested locally with Node-RED 5.0.0 in unit tests and Node-RED 4.1.0 in the Docker interoperability harness.
+- CI verifies compatibility across supported Node.js and Node-RED versions.
 - Public Node-RED Flow Library scorecard is green.
 - Runtime dependency audit is checked before release.
+
+| Node-RED | Tested Node.js versions |
+| --- | --- |
+| 3.1.x | 18, 20, 22, 24 |
+| 4.1.x | 18, 20, 22, 24 |
+| 5.0.x | 22, 24 |
+
+Node-RED 5 requires Node.js 22.9 or newer.
 
 ## Local development
 
