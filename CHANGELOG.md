@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.1] - 2026-06-19
+
+### Changed
+- Updated `rpc-express-toolkit` to `^4.4.0`, aligning the Node-RED package with the Express 4/5 compatibility release.
+
 ## [2.3.0] - 2026-06-19
 
 ### Added
