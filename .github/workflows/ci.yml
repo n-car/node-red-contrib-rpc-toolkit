@@ -7,14 +7,9 @@ on:
     branches: [main]
 
 jobs:
-  test:
-    name: Node.js ${{ matrix.node-version }}
+  package:
+    name: Package checks
     runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: [22.x, 24.x]
 
     steps:
       - name: Checkout
@@ -23,7 +18,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 24.x
           cache: npm
 
       - name: Install dependencies
@@ -37,3 +32,55 @@ jobs:
 
       - name: Check package contents
         run: npm run pack:check
+
+  compatibility:
+    name: Node.js ${{ matrix.node-version }} / Node-RED ${{ matrix.node-red-version }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - node-version: 18.x
+            node-red-version: 3.1.15
+          - node-version: 18.x
+            node-red-version: 4.1.11
+          - node-version: 20.x
+            node-red-version: 3.1.15
+          - node-version: 20.x
+            node-red-version: 4.1.11
+          - node-version: 22.x
+            node-red-version: 3.1.15
+          - node-version: 22.x
+            node-red-version: 4.1.11
+          - node-version: 22.x
+            node-red-version: 5.0.0
+          - node-version: 24.x
+            node-red-version: 3.1.15
+          - node-version: 24.x
+            node-red-version: 4.1.11
+          - node-version: 24.x
+            node-red-version: 5.0.0
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - name: Prepare compatibility manifest
+        run: |
+          node -e "const fs = require('fs'); const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8')); delete pkg.devDependencies; fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');"
+
+      - name: Install runtime dependencies
+        run: npm install --omit=dev --no-package-lock --no-audit --no-fund
+
+      - name: Install Node-RED test runtime
+        run: npm install --no-save --no-audit --no-fund node-red@${{ matrix.node-red-version }} node-red-node-test-helper@0.3.6
+
+      - name: Run compatibility tests
+        run: npm test
