@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.5] - 2026-06-18
+
+### Changed
+- Reworked the README opening, quick start, and Safe Mode guidance for clearer Node-RED Flow Library presentation.
+
 ## [2.2.4] - 2026-06-13
 
 ### Added
