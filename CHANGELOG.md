@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.2] - 2026-07-29
+
+### Changed
+- Updated the minimum `rpc-express-toolkit` version to `^4.4.1`, aligning the Node-RED package with the latest package validation and TypeScript declaration fixes.
+- Refreshed locked runtime transitive dependencies to security-patched releases.
+
 ## [2.3.1] - 2026-06-19
 
 ### Changed
