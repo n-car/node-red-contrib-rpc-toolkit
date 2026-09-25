@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.3] - 2026-09-25
+
+### Fixed
+- Reject npm packages with executable regular files before publication and in CI.
+
+### Changed
+- Publish the package from a native Linux filesystem so regular files have mode `0644`.
+- Refresh the dependency lockfile and require `rpc-express-toolkit@^4.5.1`; the production dependency audit is clear.
+
 ## [2.3.2] - 2026-07-29
 
 ### Changed

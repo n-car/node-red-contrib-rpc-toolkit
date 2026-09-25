@@ -113,7 +113,7 @@ npm test
 
 Ensure compatibility with:
 - Node-RED 3.0+
-- Node.js 14+
+- Node.js 18+
 - rpc-express-toolkit
 - rpc-php-toolkit
 - rpc-dotnet-toolkit
@@ -121,11 +121,11 @@ Ensure compatibility with:
 
 ## Release Process
 
-1. Update version in `package.json`
-2. Update `CHANGELOG.md`
-3. Create git tag: `git tag v1.0.0`
-4. Push tag: `git push origin v1.0.0`
-5. Publish to npm: `npm publish`
+1. Update the version in `package.json` and `package-lock.json`, and update `CHANGELOG.md`.
+2. On a native Linux filesystem, run `npm ci`, `npm test`, `npm run audit:runtime`, and `npm run pack:check`.
+3. Pack and inspect the tarball. All regular files must have mode `0644`; a Windows-mounted filesystem can produce `0755` files even when Git records them as `100644`.
+4. Tag and publish the GitHub release for that version, then publish the validated tarball to npm.
+5. Confirm that the npm version is installable and that its tarball matches the validated one.
 
 ## Questions?
 
