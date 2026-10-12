@@ -252,6 +252,13 @@ msg.error = {
 return msg;
 ```
 
+From version 2.3.4, unexpected errors (including `Error` objects without an
+explicit application code) are returned as `-32603`, `Internal error`, without
+stack traces or internal data. To return an intentional public error, use an
+explicit integer code other than `-32603`, a public message, and only data that
+the caller is allowed to see, as in the example above. Safe Mode transforms
+`error.data` values, not the error code or message.
+
 ### RPC Client
 
 Calls a remote JSON-RPC HTTP endpoint.
@@ -364,6 +371,12 @@ Useful checks:
 npm run audit:runtime
 npm run pack:check
 ```
+
+Version 2.3.4 passes 18 tests against the published `rpc-express-toolkit@4.5.2`,
+including four flow-backed HTTP error cases in standard and Safe Mode. The
+runtime dependency audit reports no vulnerabilities, and package checks verify
+27 files with mode `0644`. Run packaging from a native Linux filesystem; do not
+change source permissions on a Windows-mounted working tree to bypass this check.
 
 ## Related projects
 

@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.4] - 2026-10-12
+
+### Changed
+- Require `rpc-express-toolkit@^4.5.2` for default error sanitization and corrected invalid-envelope handling.
+- Document the public application-error contract for flow responses: explicit codes and safe public data remain visible; unexpected internal errors are sanitized.
+
+### Tests
+- Cover flow-backed error responses over HTTP in standard and Safe Mode, including suppression of internal details and preservation of intentional application errors.
+- Validate 18 tests against the published Express 4.5.2 package, a clean runtime dependency audit, and 27 package files with mode `0644`.
+
 ## [2.3.3] - 2026-09-25
 
 ### Fixed
